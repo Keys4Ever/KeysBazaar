@@ -1,9 +1,9 @@
 import { createClient } from "@libsql/client";
-import 'dotenv/config';
+import "dotenv/config";
 
-const turso = createClient({
+const client = createClient({
     url: process.env.TURSO_URL,
     authToken: process.env.TURSO_TOKEN,
 });
 
-export default turso;
+export default client;

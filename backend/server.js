@@ -1,16 +1,32 @@
 import express from 'express';
-import turso from "./config/turso.js";
+import turso from './config/turso.js';
+import dotenv from 'dotenv';
+
+// Import routes
+import userRoutes from './routes/userRoutes.js';
+import productRoutes from './routes/productRoutes.js';
+import cartRoutes from './routes/cartRoutes.js';
+
+dotenv.config();
+
 const app = express();
 const port = 3000;
+app.use(express.json());
 
+const db = await turso();
 
-// Definir endpoint raíz para responder con 'Hello World!' ---> probar con yaak (abrir con npx run app.js antes)
-app.get('/', async (req, res) => {
-  res.send('Hello World!');
+// Define basic route
+app.get('/', (req, res) => {
+    res.send('Keysbazaar api.');
 });
 
+// Use routes
+app.use('/api/users', userRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/orders', orderRoutes);
 
-//Inicializar server en puerto
+// Start the server
 app.listen(port, () => {
-  console.log(`Listening port on ${port}`);
+    console.log(`Server running on port ${port}`);
 });
