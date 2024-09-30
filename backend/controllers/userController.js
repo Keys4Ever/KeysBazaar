@@ -21,24 +21,27 @@ const createUser = async (req, res) => {
     try {
         if (provider && provider_id) {
             // Check if user exists with provider_id
-            const { rows: existingUser } = await client.execute(
-                `SELECT * FROM users WHERE provider = '${provider}' AND provider_id = '${provider_id}'`
-            );
+            const { rows: existingUser } = await client.execute({
+                sql:"SELECT * FROM users WHERE provider = ? AND provider_id = ?",
+                args: [provider, provider_id]
+            });
 
             if (existingUser.length > 0) {
                 return res.status(200).json({ message: "OAuth user already exists" });
             }
 
             // Create new OAuth user
-            await client.execute(
-                `INSERT INTO users (email, provider, provider_id) VALUES ('${email}', '${provider}', '${provider_id}')`
-            );
+            await client.execute({
+                sql: "INSERT INTO users (email, provider, provider_id) VALUES (?,?,?)",
+                args: [email, provider, provider_id]
+            });
             res.status(201).json({ message: "OAuth user created successfully" });
         } else if (password) {
             // Create traditional user (with password)
-            await client.execute(
-                `INSERT INTO users (email, password) VALUES ('${email}', '${password}')`
-            );
+            await client.execute({
+                sql: "INSERT INTO users (email, password) VALUES (?,?)",
+                args: [email, password]
+            });
             res.status(201).json({ message: "User created successfully" });
         } else {
             return res.status(400).json({ error: "Password is required for traditional login" });

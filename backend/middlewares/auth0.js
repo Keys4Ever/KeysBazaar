@@ -22,15 +22,18 @@ const checkUserInDatabase = async (req, res, next) => {
 
         try {
             // Check if user exists
-            const { rows: existingUser } = await client.execute(
-                `SELECT * FROM users WHERE provider = '${provider}' AND provider_id = '${provider_id}'`
-            );
+            const { rows: existingUser } = await client.execute({
+                sql:"SELECT * FROM users WHERE provider = ? AND provider_id = ?",
+                args: [provider, provider_id]
+
+            });
 
             if (!existingUser.length) {
                 // Insert new user
-                await client.execute(
-                    `INSERT INTO users (email, provider, provider_id) VALUES ('${email}', '${provider}', '${provider_id}')`
-                );
+                await client.execute({
+                    sql: "INSERT INTO users (email, provider, provider_id) VALUES (?,?,?)",
+                    args: [email, provider, provider_id]
+                });
                 console.log("New OAuth user inserted into database");
             } else {
                 console.log("OAuth user already exists in the database");
