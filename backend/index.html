@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth0 Status</title>
+    <script>
+        let isAuth = false;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/auth-status')
+                .then(response => response.json())
+                .then(data => {
+                    const authStatusElement = document.getElementById('auth-status');
+                    if (data.authenticated) { 
+                        authStatusElement.textContent = 'Logged In!';
+                        isAuth = true;
+                    } else {
+                        authStatusElement.textContent = 'Logged Out!';
+                    }
+
+                    document.getElementById('authButton-text').innerHTML = isAuth ? 'Logout' : 'Login';
+                    document.getElementById('authButton').addEventListener('click', function() {
+                        isAuth ? window.location.href = "/logout" : window.location.href = "/login";
+                    });
+                })
+                .catch(err => {
+                    console.error('Error fetching auth status:', err);
+                    document.getElementById('auth-status').textContent = 'Error checking auth status';
+                });
+        });
+    </script>
+</head>
+<body>
+    <h1>Auth0 Authentication</h1>
+    <p id="auth-status">Checking status...</p>
+    <button id="authButton" type="button"><span id="authButton-text"></span></button>
+</body>
+</html>

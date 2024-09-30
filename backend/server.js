@@ -1,60 +1,41 @@
 import express from 'express';
 import turso from './config/turso.js';
+import { authMiddleware } from './config/auth0.js';
 import dotenv from 'dotenv';
-import pkg from 'express-openid-connect';
-const { auth, requiresAuth } = pkg;
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+
+dotenv.config();
 
 // Import routes
 import userRoutes from './routes/userRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
-
-dotenv.config();
+import authRoutes from './routes/authRoutes.js'
 
 const app = express();
 const port = 3000;
+const router = express.Router();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const config = {
-    authRequired: false,
-    auth0Logout: true,
-    secret: process.env.AUTH0_SECRET,
-    baseURL: process.env.AUTH0_BASEURL,
-    clientID: process.env.AUTH0_CLIENTID,
-    issuerBaseURL: process.env.AUTH0_ISSUERBASE
-  };
-  
-app.use(auth(config));
-  
+
+
+app.use(authMiddleware);
 
 app.use(express.json());
 
-// Define basic route
-/* app.get('/', (req, res) => {
-    res.send('Keysbazaar api.');
-}); */
-
-
-// Rutas
 app.get('/', (req, res) => {
-  res.send(req.oidc.isAuthenticated() ? 'Logged in' : 'Logged out');
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Ruta protegida
-app.get('/profile', (req, res) => {
-  res.send(JSON.stringify(req.oidc.user));
-});
-
-app.get('/logout', (req, res) => {
-    res.oidc.logout({
-      returnTo: "http://localhost:3000",
-    });
-  });
-  
 
 // Use routes
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/', authRoutes)
 
 // Start the server
 app.listen(port, () => {
