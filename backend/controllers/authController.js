@@ -1,3 +1,4 @@
+// Get profile information if authenticated
 const profileController = (req, res) => {
     if (req.oidc.isAuthenticated()) {
         res.json(req.oidc.user);
@@ -6,6 +7,7 @@ const profileController = (req, res) => {
     }
 };
 
+// Get authentication status
 const authStatusController = (req, res) => {
     res.json({
         authenticated: req.oidc.isAuthenticated(),
@@ -13,11 +15,20 @@ const authStatusController = (req, res) => {
     });
 };
 
-// Controlador para cerrar sesión
+// Logout user
 const logoutController = (req, res) => {
     res.oidc.logout({
-        returnTo: "http://localhost:3000",
+        returnTo: process.env.BASE_URL,
     });
 };
 
-export { profileController, authStatusController, logoutController };
+// Redirect to login if not authenticated
+const loginController = (req, res) => {
+    if (!req.oidc.isAuthenticated()) {
+        res.oidc.login();
+    } else {
+        res.redirect('/profile');
+    }
+};
+
+export { profileController, authStatusController, logoutController, loginController };

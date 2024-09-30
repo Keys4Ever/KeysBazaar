@@ -1,15 +1,18 @@
 import express from 'express';
-import { profileController, logoutController, authStatusController } from '../controllers/authController.js';
+import { profileController, logoutController, authStatusController, loginController } from '../controllers/authController.js';
 
 const router = express.Router();
 
-// Ruta protegida para el perfil
+// Route for login
+router.get('/login', loginController);
+
+// Protected route for profile
 router.get('/profile', profileController);
 
-// Ruta para obtener el estado de autenticación
+// Route for checking auth status
 router.get('/auth-status', authStatusController);
 
-// Ruta para cerrar sesión
+// Route for logout
 router.get('/logout', logoutController);
 
 export default router;

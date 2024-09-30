@@ -1,5 +1,5 @@
 import express from 'express';
-import { authMiddleware } from './middlewares/auth0.js';
+import { authMiddleware, checkUserInDatabase } from './middlewares/auth0.js';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -16,7 +16,12 @@ const port = 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Auth0 middleware for login
 app.use(authMiddleware);
+
+// Middleware to check and insert the user in the database
+app.use(checkUserInDatabase);
+
 app.use(express.json());
 
 app.get('/', (req, res) => {

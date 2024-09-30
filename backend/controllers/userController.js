@@ -12,18 +12,37 @@ const getAllUsers = async (req, res) => {
 
 // Controller to create a new user
 const createUser = async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, provider, provider_id } = req.body;
 
-    if (!email || password) {
-        return res.status(400).json({ error: "Email and password are required" });
+    if (!email) {
+        return res.status(400).json({ error: "Email is required" });
     }
 
     try {
-        await client.execute({
-            sql: "INSERT INTO users (email, password) VALUES (?,?)",
-            args: [email, password],
-        });
-        res.status(201).json({ message: "User created successfully" });
+        if (provider && provider_id) {
+            // Check if user exists with provider_id
+            const { rows: existingUser } = await client.execute(
+                `SELECT * FROM users WHERE provider = '${provider}' AND provider_id = '${provider_id}'`
+            );
+
+            if (existingUser.length > 0) {
+                return res.status(200).json({ message: "OAuth user already exists" });
+            }
+
+            // Create new OAuth user
+            await client.execute(
+                `INSERT INTO users (email, provider, provider_id) VALUES ('${email}', '${provider}', '${provider_id}')`
+            );
+            res.status(201).json({ message: "OAuth user created successfully" });
+        } else if (password) {
+            // Create traditional user (with password)
+            await client.execute(
+                `INSERT INTO users (email, password) VALUES ('${email}', '${password}')`
+            );
+            res.status(201).json({ message: "User created successfully" });
+        } else {
+            return res.status(400).json({ error: "Password is required for traditional login" });
+        }
     } catch (error) {
         res.status(500).json({ error: "Failed to create user" });
     }
