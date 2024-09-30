@@ -1,4 +1,3 @@
-
 import express from 'express';
 import { profileController, logoutController, authStatusController } from '../controllers/authController.js';
 

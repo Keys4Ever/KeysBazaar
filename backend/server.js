@@ -1,41 +1,33 @@
 import express from 'express';
-import turso from './config/turso.js';
-import { authMiddleware } from './config/auth0.js';
+import { authMiddleware } from './middlewares/auth0.js';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-
 dotenv.config();
 
-// Import routes
 import userRoutes from './routes/userRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
-import authRoutes from './routes/authRoutes.js'
+import authRoutes from './routes/authRoutes.js';
 
 const app = express();
 const port = 3000;
-const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-
-
 app.use(authMiddleware);
-
 app.use(express.json());
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-
 // Use routes
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
-app.use('/', authRoutes)
+app.use('/', authRoutes);
 
 // Start the server
 app.listen(port, () => {
