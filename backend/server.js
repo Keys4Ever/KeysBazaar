@@ -13,8 +13,6 @@ const app = express();
 const port = 3000;
 app.use(express.json());
 
-const db = await turso();
-
 // Define basic route
 app.get('/', (req, res) => {
     res.send('Keysbazaar api.');
@@ -24,7 +22,7 @@ app.get('/', (req, res) => {
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
-app.use('/api/orders', orderRoutes);
+// app.use('/api/orders', orderRoutes);
 
 // Start the server
 app.listen(port, () => {
