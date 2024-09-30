@@ -13,8 +13,6 @@ const app = express();
 const port = 3000;
 app.use(express.json());
 
-const db = turso;
-
 // Define basic route
 app.get('/', (req, res) => {
     res.send('Keysbazaar api.');
