@@ -1,5 +1,13 @@
 import client from "../config/turso.js";
 
+async function getProductFromCart(userId, productId){
+    const { rows } = await client.execute({
+        sql: "SELECT * FROM carts WHERE user_id = ? AND product_id = ?",
+        args: [userId, productId],
+    });
+    return rows[0];
+}
+
 // Fetch all cart items for a specific user
 const getCartItems = async (req, res) => {
     const { userId } = req.params;
@@ -18,12 +26,9 @@ const getCartItems = async (req, res) => {
 // Add or update an item in the user's cart
 const addToCart = async (req, res) => {
     const { userId, productId, quantity } = req.body;
-
+    
     try {
-        const { rows } = await client.execute({
-            sql: "SELECT * FROM carts WHERE user_id = ? AND product_id = ?",
-            args: [userId, productId],
-        });
+        const {rows} = await getProductFromCart(userId, productId);
 
         if (rows.length > 0) {
             // Update quantity if item exists
@@ -50,10 +55,7 @@ const removeFromCart = async (req, res) => {
     const { userId, productId } = req.params;
 
     try {
-        const { rows } = await client.execute({
-            sql: "SELECT * FROM carts WHERE user_id = ? AND product_id = ?",
-            args: [userId, productId],
-        });
+        const { rows } = await getProductFromCart(userId, productId);
 
         if (rows.length === 0) {
             return res.status(404).json({ error: "Item not found in cart" });
@@ -77,7 +79,7 @@ const removeFromCart = async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: "Failed to remove item from cart" });
     }
-};
+};  
 
 // Replace the user's cart with a new set of items
 /* Example input:
