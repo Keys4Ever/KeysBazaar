@@ -25,7 +25,7 @@ app.use(checkUserInDatabase);
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+    res.sendFile(path.join(__dirname, "index.html"));
 });
 
 // Use routes
@@ -36,5 +36,5 @@ app.use("/", authRoutes);
 
 // Start the server
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+    console.log(`Server running on port ${port}`);
 });
