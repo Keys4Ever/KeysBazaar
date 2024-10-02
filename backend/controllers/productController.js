@@ -59,4 +59,24 @@ const updateProduct = async (req, res) => {
     }
 };
 
-export { getAllProducts, createProduct, deleteProduct, updateProduct };
+const getOneProduct = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const { rows } = await client.execute({
+            sql: "SELECT * FROM users WHERE id = ?",
+            args: [id],
+        });
+        
+        if (rows.length < 1) {
+            return res.status(404).json({ error: `Can't find a product with id: ${id}` });
+        }
+        
+        res.status(200).json(rows[0]);
+        
+    } catch (e) {
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+
+export { getAllProducts, createProduct, deleteProduct, updateProduct, getOneProduct };
