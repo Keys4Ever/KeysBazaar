@@ -17,8 +17,8 @@ const authMiddleware = auth(config);
 
 const checkUserInDatabase = async (req, res, next) => {
   if (req.oidc && req.oidc.user) {
-    const { email, user_id, nickname, picture } = req.oidc.user;
-    const [provider, provider_id] = user_id.split("|");
+    const { email, sub, nickname, picture } = req.oidc.user;
+    const [provider, provider_id] = sub.split("|");
 
     try {
       const { rows: existingUser } = await client.execute({
