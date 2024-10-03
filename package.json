@@ -4,15 +4,11 @@
   "description": "...",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"npm run dev --workspace=frontend\" \"npm run dev --workspace=backend\"",
-    "build": "npm run build --workspace=frontend",
+    "dev": "concurrently -k \"npm run dev --workspace frontend\" \"npm run dev --workspace backend\"",
+    "build": "concurrently \"npm run build --workspace frontend\" \"npm run build --workspace backend\"",
     "lint": "npm run lint --workspace=frontend",
-    "install": "npm install --workspaces --include-root",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "workspaces": [
     "frontend",
     "backend"
