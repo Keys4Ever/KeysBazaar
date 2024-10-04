@@ -1,35 +1,27 @@
-import { useState } from 'react'
-import reactLogo from '../assets/images/react.svg'
-import viteLogo from '../assets/images/vite.svg'
-import './App.css'
+import ProductCard from '../components/ProductCard/ProductCard.jsx';
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const mockProduct = {
+    banner: 'https://gaming-cdn.com/images/products/7678/380x218/black-myth-wukong-pc-game-steam-europe-and-us-and-canada-cover.jpg?v=1728068400',
+    name: 'Black Myth: Wukong',
+    price: '23.54',
+    productId: '123',
+    trailer: 'https://gaming-cdn.com/videos/products/7678/800x450/black-myth-wukong-pc-game-steam-europe-and-us-and-canada-preview.webm?v=1724184288'
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="App">
+      <h1>Test</h1>
+      <ProductCard
+        banner={mockProduct.banner}
+        name={mockProduct.name}
+        price={mockProduct.price}
+        productId={mockProduct.productId}
+        trailer={mockProduct.trailer}
+      />
+    </div>
+  );
 }
 
-export default App
+export default App;
