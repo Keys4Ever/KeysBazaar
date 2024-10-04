@@ -1,0 +1,19 @@
+[
+    {
+        "banner": "https://gaming-cdn.com/images/products/7678/380x218/black-myth-wukong-pc-game-steam-europe-and-us-and-canada-cover.jpg?v=1728068400",
+        "name": "Black Myth: Wukong",
+        "price": "23.54",
+        "description": "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Sequi quidem recusandae eos repellendus vitae? Eligendi nulla perferendis officia reiciendis assumenda debitis distinctio earum repudiandae iusto eveniet, ea cumque quam quisquam?",
+        "productId": "123",
+        "trailer": "https://gaming-cdn.com/videos/products/7678/800x450/black-myth-wukong-pc-game-steam-europe-and-us-and-canada-preview.webm?v=1724184288"
+      },
+      {
+        "banner": "https://gaming-cdn.com/images/products/14769/380x218/cyberpunk-2077-cover.jpg",
+        "name": "Cyberpunk 2077",
+        "price": "59.99",
+        "description": "Un juego futurista",
+        "productId": "124",
+        "trailer": "https://gaming-cdn.com/videos/products/14769/800x450/cyberpunk-2077-ultimate-edition-ultimate-edition-pc-juego-gog-com-preview.webm?v=1691678661"
+      }
+      
+]

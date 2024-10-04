@@ -1,4 +1,3 @@
-import PropTypes from "prop-types";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "./ProductCard.css";
@@ -20,8 +19,9 @@ const ProductCard = ({ banner, name, price, productId, trailer }) => {
     };
 
     const playVideo = useCallback(() => {
+
         if (videoRef.current && isHovered) {
-        videoRef.current.currentTime = videoTime;
+        videoRef.current.currentTime = 0;
         videoRef.current.play().catch(() => {});
         }
     }, [isHovered, videoTime]);
@@ -60,14 +60,6 @@ const ProductCard = ({ banner, name, price, productId, trailer }) => {
             </div>
         </div>
     );
-};
-
-ProductCard.propTypes = {
-    banner: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-    productId: PropTypes.string.isRequired,
-    trailer: PropTypes.string,
 };
 
 export default ProductCard;
