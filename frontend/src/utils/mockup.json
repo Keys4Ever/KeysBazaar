@@ -5,15 +5,65 @@
         "price": "23.54",
         "description": "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Sequi quidem recusandae eos repellendus vitae? Eligendi nulla perferendis officia reiciendis assumenda debitis distinctio earum repudiandae iusto eveniet, ea cumque quam quisquam?",
         "productId": "123",
-        "trailer": "https://gaming-cdn.com/videos/products/7678/800x450/black-myth-wukong-pc-game-steam-europe-and-us-and-canada-preview.webm?v=1724184288"
+        "trailer": "https://gaming-cdn.com/videos/products/7678/800x450/black-myth-wukong-pc-game-steam-europe-and-us-and-canada-preview.webm?v=1724184288",
+        "cover":"https://gaming-cdn.com/img/products/7678/pcover/1400x500/7678.jpg?v=1724142714" 
       },
       {
         "banner": "https://gaming-cdn.com/images/products/14769/380x218/cyberpunk-2077-cover.jpg",
         "name": "Cyberpunk 2077",
         "price": "59.99",
-        "description": "Un juego futurista",
+        "description": "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Sequi quidem recusandae eos repellendus vitae? Eligendi nulla perferendis officia reiciendis assumenda debitis distinctio earum repudiandae iusto eveniet, ea cumque quam quisquam?",
         "productId": "124",
-        "trailer": "https://gaming-cdn.com/videos/products/14769/800x450/cyberpunk-2077-ultimate-edition-ultimate-edition-pc-juego-gog-com-preview.webm?v=1691678661"
+        "trailer": "https://gaming-cdn.com/videos/products/14769/800x450/cyberpunk-2077-ultimate-edition-ultimate-edition-pc-juego-gog-com-preview.webm?v=1691678661",
+        "cover": "https://gaming-cdn.com/img/products/840/pcover/1400x500/840.jpg?v=1701271565"
+      },
+      {
+        "banner":"https://gaming-cdn.com/images/products/1028/380x218/7-days-to-die-pc-mac-juego-steam-cover.jpg?v=1728097200",
+        "name":"7 Days to Die",
+        "price":"18.86",
+        "description":"Lorem ipsum dolor sit, amet consectetur adipisicing elit. Sequi quidem recusandae eos repellendus vitae? Eligendi nulla perferendis officia reiciendis assumenda debitis distinctio earum repudiandae iusto eveniet, ea cumque quam quisquam?",
+        "productId":"125",
+        "trailer":"https://gaming-cdn.com/videos/products/1028/800x450/7-days-to-die-pc-mac-juego-steam-preview.webm?v=1657028784",
+        "cover":"https://gaming-cdn.com/img/products/1028/pcover/1400x500/1028.jpg"
+      
+      },
+      {
+        "banner":"https://gaming-cdn.com/images/products/14344/380x218/star-wars-outlaws-pc-juego-ubisoft-connect-cover.jpg?v=1728097200",
+        "name":"Star Wars Outlaws",
+        "price":"39.52",
+        "description":"Un juego muy malo",
+        "productId":"126",
+        "trailer":"https://gaming-cdn.com/videos/products/14344/800x450/star-wars-outlaws-pc-juego-ubisoft-connect-preview.webm?v=1724421699",
+        "cover":"https://gaming-cdn.com/img/products/14344/pcover/14344.jpg"
+      
+      },
+      {
+        "banner": "https://gaming-cdn.com/images/products/5679/380x218/red-dead-redemption-2-pc-juego-rockstar-cover.jpg?v=1728097200",
+        "name": "Red Dead Redemption 2",
+        "price": "18.52",
+        "description": "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Sequi quidem recusandae eos repellendus vitae? Eligendi nulla perferendis officia reiciendis assumenda debitis distinctio earum repudiandae iusto eveniet, ea cumque quam quisquam?",
+        "productId": "5679",
+        "trailer": "https://gaming-cdn.com/videos/products/5679/800x450/red-dead-redemption-2-pc-juego-rockstar-preview.webm?v=1657034665",
+        "cover": "https://gaming-cdn.com/img/products/5679/pcover/5679.jpg"
+      },
+      {
+      "banner": "https://gaming-cdn.com/images/products/442/380x218/minecraft-java-bedrock-edition-java-bedrock-edition-pc-juego-cover.jpg?v=1728097200",
+      "name": "Minecraft",
+      "price": "15.91",
+      "description": "Un juego muy bueno",
+      "productId": "442",
+      "trailer": "https://gaming-cdn.com/videos/products/442/800x450/minecraft-java-bedrock-edition-java-bedrock-edition-pc-juego-preview.webm?v=1657026831",
+      "cover": "https://gaming-cdn.com/img/products/442/pcover/442.jpg"
+        
+      },
+      {
+        "banner": "https://gaming-cdn.com/images/products/13881/380x218/sifu-pc-juego-steam-cover.jpg?v=1728097200",
+        "name": "SIFU",
+        "price": "5.70",
+        "description": "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Sequi quidem recusandae eos repellendus vitae? Eligendi nulla perferendis officia reiciendis assumenda debitis distinctio earum repudiandae iusto eveniet, ea cumque quam quisquam?",
+        "productId": "13881",
+        "trailer": "https://gaming-cdn.com/videos/products/13881/800x450/sifu-pc-juego-steam-preview.webm?v=1680096183",
+        "cover": "https://gaming-cdn.com/themes/igv2/images/generic-background.png"
       }
       
 ]
