@@ -8,7 +8,7 @@ const ProductCard = ({ banner, name, price, productId, trailer }) => {
     const videoRef = useRef(null);
     const navigate = useNavigate();
 
-    const handleCardClick = () => navigate(`/product/${productId}`); //#TODO Add redirection to product page here
+    const handleCardClick = () => navigate(`/product/${productId}`);
 
     const toggleHover = (hovered) => {
         setIsHovered(hovered);

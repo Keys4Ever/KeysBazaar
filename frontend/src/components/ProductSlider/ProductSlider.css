@@ -1,0 +1,44 @@
+.slider-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    margin: 0 auto;
+  }
+  
+  .slider {
+    display: flex;
+    overflow-x: scroll;
+    scroll-behavior: smooth;
+    -ms-overflow-style: none;  /* Para ocultar barra de desplazamiento en IE y Edge */
+    scrollbar-width: none;  /* Para ocultar barra de desplazamiento en Firefox */
+  }
+  
+  .slider::-webkit-scrollbar {
+    display: none;  /* Para ocultar barra de desplazamiento en Chrome, Safari y Opera */
+  }
+  
+  .slider-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    z-index: 1;
+  }
+  
+  .slider-button.left {
+    left: 10px;
+  }
+  
+  .slider-button.right {
+    right: 10px;
+  }
+  
+  .product-card {
+    flex: 0 0 auto; /* Evita que los productos se estiren */
+    width: 250px; /* Ajusta el ancho según tu diseño */
+    margin: 10px;
+  }
