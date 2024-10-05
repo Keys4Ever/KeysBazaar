@@ -1,11 +1,12 @@
 import ProductCard from '../components/ProductCard/ProductCard.jsx';
+import NavBar from '../components/NavBar/NavBar.jsx';
 import './App.css';
 import mockProduct from '../utils/mockup.json'
 
 function App() {
   return (
     <div className="App">
-      <h1>Test</h1>
+      <NavBar />
       <div className="product-grid">
         {mockProduct.map((product) => (
           <ProductCard

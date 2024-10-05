@@ -2,8 +2,10 @@ import { useRef } from "react";
 import "./ProductSlider.css";
 import ProductCard from "../ProductCard/ProductCard.jsx";
 import products from "../../utils/mockup.json";
+
 const ProductSlider = () => {
     const sliderRef = useRef(null);
+
     const handleScroll = (direction) => {
         if (sliderRef.current) {
             const scrollAmount = 300;

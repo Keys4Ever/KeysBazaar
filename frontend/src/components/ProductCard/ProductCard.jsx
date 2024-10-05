@@ -13,16 +13,16 @@ const ProductCard = ({ banner, name, price, productId, trailer }) => {
     const toggleHover = (hovered) => {
         setIsHovered(hovered);
         if (!hovered && videoRef.current) {
-        setVideoTime(videoRef.current.currentTime);
-        videoRef.current.pause();
+            setVideoTime(videoRef.current.currentTime);
+            videoRef.current.pause();
         }
     };
 
     const playVideo = useCallback(() => {
 
         if (videoRef.current && isHovered) {
-        videoRef.current.currentTime = 0;
-        videoRef.current.play().catch(() => {});
+            videoRef.current.currentTime = videoTime;
+            videoRef.current.play().catch(() => { });
         }
     }, [isHovered, videoTime]);
 
@@ -38,20 +38,20 @@ const ProductCard = ({ banner, name, price, productId, trailer }) => {
                 onMouseLeave={() => toggleHover(false)}
             >
                 {isHovered && trailer ? (
-                <video
-                    ref={videoRef}
-                    className="product-trailer"
-                    src={trailer}
-                    loop
-                    muted
-                    onLoadedData={playVideo}
-                />
+                    <video
+                        ref={videoRef}
+                        className="product-trailer"
+                        src={trailer}
+                        loop
+                        muted
+                        onLoadedData={playVideo}
+                    />
                 ) : (
-                <img
-                    src={banner}
-                    alt={`${name} banner`}
-                    className="product-banner-image"
-                />
+                    <img
+                        src={banner}
+                        alt={`${name} banner`}
+                        className="product-banner-image"
+                    />
                 )}
             </div>
             <div className="product-info">
