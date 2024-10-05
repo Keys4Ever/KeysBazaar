@@ -1,6 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import NavRight from "./NavRight/NavRight.jsx";
 import { useNavigate } from "react-router-dom";
 import "./NavBar.css";
+import logo from "../../assets/images/react.svg";
+import searchIcon from "../../assets/images/magnifying-glass.svg";
+import clearIcon from "../../assets/images/clear-search.svg";
 
 const NavBar = () => {
     const [searchTerm, setSearchTerm] = useState("");
@@ -8,8 +12,9 @@ const NavBar = () => {
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
-        if (searchTerm.trim()) {
-            navigate(`/catalog?search=${searchTerm}`);
+        const trimmedSearchTerm = searchTerm.trim();
+        if (trimmedSearchTerm) {
+            navigate(`/catalog?search=${trimmedSearchTerm}`);
         }
     };
 
@@ -19,12 +24,12 @@ const NavBar = () => {
 
     return (
         <nav className="nav-bar">
-            <div
+            <div 
                 className="nav-left"
                 onClick={() => navigate("/")}
                 aria-label="Go to Home"
             >
-                <img src="/logo.png" alt="Logo" className="logo" />
+                <img src={logo} alt="Logo" className="logo" />
             </div>
 
             <div className="nav-middle">
@@ -34,12 +39,12 @@ const NavBar = () => {
                         className="search-icon"
                         aria-label="Search products"
                     >
-                        <img 
-                            src="/assets/images/magnifying-glass.svg" 
-                            width="20" 
-                            height="20" 
-                            alt="Search" 
-                            aria-hidden="true" 
+                        <img
+                            src={searchIcon}
+                            width="20"
+                            height="20"
+                            alt="Search"
+                            aria-hidden="true"
                         />
                     </button>
                     <input
@@ -56,41 +61,18 @@ const NavBar = () => {
                             onClick={handleClearSearch}
                             aria-label="Clear search"
                         >
-                            <img 
-                                src="/assets/images/clear-search.svg" 
-                                width="20" 
-                                height="20" 
-                                alt="Clear" 
-                                aria-hidden="true" 
+                            <img
+                                src={clearIcon}
+                                width="20"
+                                height="20"
+                                alt="Clear"
+                                aria-hidden="true"
                             />
                         </button>
                     )}
                 </form>
             </div>
-
-            <div className="nav-right">
-                <button onClick={() => navigate("/catalog")}>Catalog</button>
-                <button onClick={() => navigate("/cart")}>Cart</button>
-                <div className="dropdown">
-                    <button aria-haspopup="true" aria-expanded="false">
-                        Account
-                    </button>
-                    <div className="dropdown-content" aria-label="User menu">
-                        <a href="#" onClick={() => navigate("/user/account")}>
-                            Account
-                        </a>
-                        <a href="#" onClick={() => navigate("/user/something1")}>
-                            Something 1
-                        </a>
-                        <a href="#" onClick={() => navigate("/user/something2")}>
-                            Something 2
-                        </a>
-                        <a href="#" onClick={() => navigate("/user/settings")}>
-                            Settings
-                        </a>
-                    </div>
-                </div>
-            </div>
+            <NavRight />
         </nav>
     );
 };

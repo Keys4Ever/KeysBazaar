@@ -1,4 +1,3 @@
-import React from 'react';
 import { useParams } from 'react-router-dom';
 import mockupProduct from '../../utils/mockup.json';
 import './ProductPage.css';
