@@ -1,6 +1,8 @@
-import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const NavRight = () =>{
+    const navigate = useNavigate();
+
     return (
         <div className="nav-right">
         <button onClick={() => navigate("/catalog")}>Catalog</button>
