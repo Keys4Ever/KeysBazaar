@@ -1,3 +1,4 @@
+import Footer from './Footer/Footer.jsx';
 import NavBar from './NavBar/NavBar.jsx';
 
 const Layout = ({ children }) => {
@@ -5,6 +6,7 @@ const Layout = ({ children }) => {
         <>
             <NavBar />
             <main>{children}</main>
+            <Footer />
         </>
     );
 };

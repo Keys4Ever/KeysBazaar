@@ -1,6 +1,7 @@
 import ProductCard from '../components/ProductCard/ProductCard.jsx';
 import './App.css';
 import mockProduct from '../utils/mockup.json'
+import Footer from '../components/Footer/Footer.jsx';
 
 function App() {
   return (
