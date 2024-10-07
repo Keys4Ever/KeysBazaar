@@ -14,7 +14,7 @@ const NavBar = () => {
         e.preventDefault();
         const trimmedSearchTerm = searchTerm.trim();
         if (trimmedSearchTerm) {
-            navigate(`/catalog?search=${trimmedSearchTerm}`);
+            window.location.href = `/catalog?search=${trimmedSearchTerm}`
         }
     };
 

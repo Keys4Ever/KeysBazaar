@@ -4,13 +4,23 @@ import ProductCard from '../../components/ProductCard/ProductCard';
 import PaginationControls from '../../components/PaginationControls/PaginationControls';
 import usePagination from '../../hooks/usePagination'; // New hook
 import './Catalog.css';
+import { useSearchParams } from 'react-router-dom';
 
 const Catalog = () => {
     const itemsPerPage = 3; // Corrected to 20 items
     const [products, setProducts] = useState([]);
-
+    const [searchParams] = useSearchParams();
+    const name =  searchParams.get('search');
+    console.log(name)
     useEffect(() => {
-        setProducts(mockup);
+        if(name){
+            const filteredProducts = mockup.filter(product => 
+                product.name.toLowerCase().includes(name.toLowerCase())
+            );
+            setProducts(filteredProducts);
+        }else{
+            setProducts(mockup);
+        }
     }, []);
 
     const {
@@ -24,6 +34,7 @@ const Catalog = () => {
     return (
         <div>
             <h1>Catalog</h1>
+            {name && <p>Search result for: {name} </p>}
             <PaginationControls
                 currentPage={currentPage}
                 handlePreviousPage={handlePreviousPage}
