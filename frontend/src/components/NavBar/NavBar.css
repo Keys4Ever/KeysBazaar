@@ -3,11 +3,11 @@
     justify-content: space-between;
     align-items: center;
     padding: 10px 20px;
+    backdrop-filter: blur(5px);
     background-color: #5b2e2e;
-    position: fixed;
+    position: sticky;
     top: 0;
     left: 0;
-    width: 100%;
     z-index: 1000;
     opacity: 0.95;
 }
