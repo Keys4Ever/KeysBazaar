@@ -1,76 +1,55 @@
-import { useState, useEffect } from 'react';
-import mockup from '../../utils/mockup.json'; 
+import { useEffect, useState } from 'react';
+import mockup from '../../utils/mockup.json';
 import ProductCard from '../../components/ProductCard/ProductCard';
-import "./Catalog.css"
+import PaginationControls from '../../components/PaginationControls/PaginationControls';
+import usePagination from '../../hooks/usePagination'; // New hook
+import './Catalog.css';
 
 const Catalog = () => {
-  const itemsPerPage = 2; // It's supposed to be 20
-  
-  //#TODO move this to a custom hook "usePagination"
-  const [currentPage, setCurrentPage] = useState(1);
-  const [products, setProducts] = useState([]);
+    const itemsPerPage = 3; // Corrected to 20 items
+    const [products, setProducts] = useState([]);
 
-  useEffect(() => {
-    setProducts(mockup);
-  }, []);
+    useEffect(() => {
+        setProducts(mockup);
+    }, []);
 
-  // Calcular los productos que se mostrarán en la página actual
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentProducts = products.slice(indexOfFirstItem, indexOfLastItem);
+    const {
+        currentItems: currentProducts,
+        currentPage,
+        handleNextPage,
+        handlePreviousPage,
+        isNextDisabled
+    } = usePagination(products, itemsPerPage); // I dont know if this is how you use hooks
 
-  // Cambiar de página
-  const handleNextPage = () => {
-    if (indexOfLastItem < products.length) {
-      window.scrollTo(0,0);
-      setCurrentPage(prevPage => prevPage + 1);
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      window.scrollTo(0,0);
-      setCurrentPage(prevPage => prevPage - 1);
-    }
-  };
- //--------------------
- //#TODO move "pagination-controls" to other component.
-  return (
-    <div>
-      <h1>Catalog</h1>
-      <div className="pagination-controls">
-        <button onClick={handlePreviousPage} disabled={currentPage === 1}>
-          Previous
-        </button>
-        <span>Page {currentPage}</span>
-        <button onClick={handleNextPage} disabled={indexOfLastItem >= products.length}>
-          Next
-        </button>
-      </div>
-      <div className="catalog-grid">
-        {currentProducts.map((product, index) => (
-          <ProductCard 
-          banner={product.banner}
-          name={product.name}
-          price={product.price}
-          productId={product.productId}
-          trailer={product.trailer}
-          key={index} 
-          />
-        ))}
-      </div>
-
-      <div className="pagination-controls">
-        <button onClick={handlePreviousPage} disabled={currentPage === 1}>
-          Previous
-        </button>
-        <span>Page {currentPage}</span>
-        <button onClick={handleNextPage} disabled={indexOfLastItem >= products.length}>
-          Next
-        </button>
-      </div>
-    </div>
-  );
+    return (
+        <div>
+            <h1>Catalog</h1>
+            <PaginationControls
+                currentPage={currentPage}
+                handlePreviousPage={handlePreviousPage}
+                handleNextPage={handleNextPage}
+                isNextDisabled={isNextDisabled}
+            />
+            <div className="catalog-grid">
+                {currentProducts.map((product) => (
+                    <ProductCard
+                        banner={product.banner}
+                        name={product.name}
+                        price={product.price}
+                        productId={product.productId}
+                        trailer={product.trailer}
+                        key={product.productId}
+                    />
+                ))}
+            </div>
+            <PaginationControls
+                currentPage={currentPage}
+                handlePreviousPage={handlePreviousPage}
+                handleNextPage={handleNextPage}
+                isNextDisabled={isNextDisabled}
+            />
+        </div>
+    );
 };
 
 export default Catalog;
