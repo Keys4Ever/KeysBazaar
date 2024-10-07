@@ -7,6 +7,7 @@ const ProductPage = () => {
     const { id } = useParams();
     const product = mockupProduct.find((p) => p.productId === id);
     function handleAddCartButton() {
+        //Kaypi chayanchis hukchasqayta karuta yapaypaq.
         alert(`Has agregado el producto "${product.name}" al carrito`);
     }
     window.scrollTo(0,0);

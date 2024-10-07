@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import mockup from '../../utils/mockup.json';
-import ProductCard from '../../components/ProductCard/ProductCard';
 import PaginationControls from '../../components/PaginationControls/PaginationControls';
 import usePagination from '../../hooks/usePagination'; // New hook
 import './Catalog.css';
 import { useSearchParams } from 'react-router-dom';
+import ProductGrid from '../../components/ProductGrid/ProductGrid';
 
 const Catalog = () => {
     const itemsPerPage = 3; // Corrected to 20 items
@@ -29,7 +29,7 @@ const Catalog = () => {
         handleNextPage,
         handlePreviousPage,
         isNextDisabled
-    } = usePagination(products, itemsPerPage); // I dont know if this is how you use hooks
+    } = usePagination(products, itemsPerPage); // I dont know if this is how you use hooks - Ndio, ndivyo zinavyotumika!
 
     return (
         <div>
@@ -41,18 +41,7 @@ const Catalog = () => {
                 handleNextPage={handleNextPage}
                 isNextDisabled={isNextDisabled}
             />
-            <div className="catalog-grid">
-                {currentProducts.map((product) => (
-                    <ProductCard
-                        banner={product.banner}
-                        name={product.name}
-                        price={product.price}
-                        productId={product.productId}
-                        trailer={product.trailer}
-                        key={product.productId}
-                    />
-                ))}
-            </div>
+            <ProductGrid currentProducts={currentProducts} classname='catalog'/>
             <PaginationControls
                 currentPage={currentPage}
                 handlePreviousPage={handlePreviousPage}

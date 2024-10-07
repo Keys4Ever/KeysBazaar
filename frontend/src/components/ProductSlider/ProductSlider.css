@@ -5,7 +5,7 @@
     margin: 0 auto;
   }
   
-  .slider {
+  .slider-grid {
     display: flex;
     overflow-x: scroll;
     scroll-behavior: smooth;
@@ -13,7 +13,7 @@
     scrollbar-width: none;  /* Para ocultar barra de desplazamiento en Firefox */
   }
   
-  .slider::-webkit-scrollbar {
+  .slider-grid::-webkit-scrollbar {
     display: none;  /* Para ocultar barra de desplazamiento en Chrome, Safari y Opera */
   }
   

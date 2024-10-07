@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import "./ProductSlider.css";
-import ProductCard from "../ProductCard/ProductCard.jsx";
 import products from "../../utils/mockup.json";
+import ProductGrid from "../ProductGrid/ProductGrid.jsx";
 
 const ProductSlider = () => {
     const sliderRef = useRef(null);
@@ -22,18 +22,7 @@ const ProductSlider = () => {
             <button className="slider-button left" onClick={() => handleScroll("left")}>
                 &#10094;
             </button>
-            <div className="slider" ref={sliderRef}>
-                {products.map((product) => (
-                    <ProductCard
-                        key={product.productId}
-                        banner={product.banner}
-                        name={product.name}
-                        price={product.price}
-                        productId={product.productId}
-                        trailer={product.trailer}
-                    />
-                ))}
-            </div>
+            <ProductGrid currentProducts={products} classname="slider" ref={sliderRef}/>
             <button className="slider-button right" onClick={() => handleScroll("right")}>
                 &#10095;
             </button>

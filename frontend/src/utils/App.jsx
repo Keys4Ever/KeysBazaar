@@ -1,28 +1,16 @@
 import React from 'react';
-import ProductCard from '../components/ProductCard/ProductCard.jsx';
 import './App.css';
 import mockProduct from '../utils/mockup.json';
-import Footer from '../components/Footer/Footer.jsx';
 import Section from '../components/Section/Section.jsx';
 import SectionSeparator from '../components/SectionSeparator/SectionSeparator.jsx';
+import ProductGrid from '../components/ProductGrid/ProductGrid.jsx';
 
 function App() {
     return (
         <div className="App">
 
             <Section title="Most Popular Games">
-                <div className="product-grid">
-                    {mockProduct.map((product) => (
-                        <ProductCard
-                            key={product.productId}
-                            banner={product.banner}
-                            name={product.name}
-                            price={product.price}
-                            productId={product.productId}
-                            trailer={product.trailer}
-                        />
-                    ))}
-                </div>
+                <ProductGrid currentProducts={mockProduct} classname="product"/>
             </Section>
 
             <SectionSeparator>
@@ -45,5 +33,5 @@ function App() {
         </div>
     );
 }
-
+            //ماذا يجب أن أفعل في الفئات؟
 export default App;
