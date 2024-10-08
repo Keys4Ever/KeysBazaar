@@ -29,7 +29,7 @@ const Catalog = () => {
         handleNextPage,
         handlePreviousPage,
         isNextDisabled
-    } = usePagination(products, itemsPerPage); // I dont know if this is how you use hooks - Ndio, ndivyo zinavyotumika!
+    } = usePagination(products, itemsPerPage);
 
     return (
         <div>
