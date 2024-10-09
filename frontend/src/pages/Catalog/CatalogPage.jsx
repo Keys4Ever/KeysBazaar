@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import mockup from '../../utils/mockup.json';
 import PaginationControls from '../../components/PaginationControls/PaginationControls';
 import usePagination from '../../hooks/usePagination'; // New hook
-import './Catalog.css';
+import './CatalogPage.css';
 import { useSearchParams } from 'react-router-dom';
 import ProductGrid from '../../components/ProductGrid/ProductGrid';
 
-const Catalog = () => {
+const CatalogPage = () => {
     const itemsPerPage = 3; // Corrected to 20 items
     const [products, setProducts] = useState([]);
     const [searchParams] = useSearchParams();
@@ -52,4 +52,4 @@ const Catalog = () => {
     );
 };
 
-export default Catalog;
+export default CatalogPage;
