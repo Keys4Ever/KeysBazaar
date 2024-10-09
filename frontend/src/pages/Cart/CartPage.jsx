@@ -1,22 +1,8 @@
 import React, { useMemo } from 'react';
 import mockupCart from '../../utils/mockupCart.json';
 import mockup from '../../utils/mockup.json';
+import CartItem from '../../components/CartItem/CartItem.jsx';
 import './CartPage.css';
-
-//move this to an external component, i can do it, but xd
-const CartItem = ({ name, price, quantity }) => {
-    return (
-        <li className="cart-item">
-            <div className="product-info">
-                <h2>{name}</h2>
-                <p className="quantity">Quantity: {quantity}</p>
-            </div>
-            <div className="price-section">
-                <p className="price">Price: ${price}</p>
-            </div>
-        </li>
-    );
-};
 
 const CartPage = () => {
     //userId, here should be auth0 logic

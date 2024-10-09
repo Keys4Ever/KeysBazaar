@@ -4,6 +4,7 @@ import App from '../utils/App.jsx';
 import Layout from '../components/layout.jsx';
 import Catalog from '../pages/Catalog/Catalog.jsx';
 import CartPage from '../pages/Cart/CartPage.jsx';
+import AccountPage from '../pages/Account/AccountPage.jsx';
 
 const ProductPage = lazy(() => import('../pages/Product/ProductPage'));
 
@@ -14,7 +15,8 @@ const AppRoutes = () => {
                 <Route path="/" element={<Layout><App /></Layout>} />
                 <Route path="/product/:id" element={<Layout><ProductPage /></Layout>} />
                 <Route path="/catalog" element={<Layout><Catalog /></Layout>} />
-                <Route path='/cart' element={<Layout><CartPage /></Layout>} />
+                <Route path="/cart" element={<Layout><CartPage /></Layout>} />
+                <Route path="/account" element={<Layout><AccountPage /></Layout>} />
             </Routes>
         </Suspense>
     );

@@ -12,17 +12,15 @@ const NavRight = () =>{
                 Account
             </button>
             <div className="dropdown-content" aria-label="User menu">
-                <a href="#" onClick={() => navigate("/user/account")}>
+                <a href="#" onClick={() => navigate("/account")}>
                     Account
                 </a>
                 <a href="#" onClick={() => navigate("/user/something1")}>
                     Something 1
+                    { /* Opened part of user (?) */ }
                 </a>
                 <a href="#" onClick={() => navigate("/user/something2")}>
                     Something 2
-                </a>
-                <a href="#" onClick={() => navigate("/user/settings")}>
-                    Settings
                 </a>
             </div>
         </div>
