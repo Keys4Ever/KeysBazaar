@@ -16,6 +16,7 @@ const AppRoutes = () => {
                 <Route path="/product/:id" element={<Layout><ProductPage /></Layout>} />
                 <Route path="/catalog" element={<Layout><CatalogPage /></Layout>} />
                 <Route path='/cart' element={<Layout><CartPage /></Layout>} />
+                <Route path="/account" element={<Layout><AccountPage /></Layout>} />
             </Routes>
         </Suspense>
     );
