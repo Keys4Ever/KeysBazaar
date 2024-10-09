@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import App from '../utils/App.jsx';
 import Layout from '../components/layout.jsx';
-import Catalog from '../pages/Catalog/Catalog.jsx';
+import CatalogPage from '../pages/Catalog/CatalogPage.jsx';
 import CartPage from '../pages/Cart/CartPage.jsx';
 
 const ProductPage = lazy(() => import('../pages/Product/ProductPage'));
@@ -13,7 +13,7 @@ const AppRoutes = () => {
             <Routes>
                 <Route path="/" element={<Layout><App /></Layout>} />
                 <Route path="/product/:id" element={<Layout><ProductPage /></Layout>} />
-                <Route path="/catalog" element={<Layout><Catalog /></Layout>} />
+                <Route path="/catalog" element={<Layout><CatalogPage /></Layout>} />
                 <Route path='/cart' element={<Layout><CartPage /></Layout>} />
             </Routes>
         </Suspense>
