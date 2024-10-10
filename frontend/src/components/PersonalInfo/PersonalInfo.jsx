@@ -12,6 +12,7 @@ const PersonalInfo = () => {
     };
 
     // Idk if we want this tbh, copied it from other webs
+    // We can't update the password tho, auth0 has it, not us.
     return (
         <form onSubmit={handleSubmit} className="personal-info-form">
             <h2>Personal Information</h2>
