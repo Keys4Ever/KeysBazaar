@@ -1,0 +1,41 @@
+.personal-info-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.personal-info-form label {
+    font-size: 16px;
+    color: #fff;
+}
+
+.personal-info-form input {
+    padding: 10px;
+    border: 1px solid #444;
+    background-color: #333;
+    color: #fff;
+    border-radius: 6px;
+    font-size: 16px;
+    width: 100%;
+    transition: border 0.3s ease;
+}
+
+.personal-info-form input:focus {
+    border-color: #7A4C4C; 
+    outline: none;
+}
+
+.personal-info-form button {
+    padding: 10px 15px;
+    background-color: #7A4C4C;
+    color: #fff;
+    font-size: 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.personal-info-form button:hover {
+    background-color: #9C6D6D;
+}

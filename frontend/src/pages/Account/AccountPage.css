@@ -1,0 +1,28 @@
+.account-page {
+    display: flex;
+    padding: 20px;
+    min-height: 100vh;
+    background-color: #242424;
+    color: #fff;
+}
+
+.account-content {
+    flex: 1;
+    background-color: #572C2C;
+    padding: 20px;
+    margin-left: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+p {
+    font-size: 16px;
+    line-height: 1.5;
+    color: #ccc;
+}

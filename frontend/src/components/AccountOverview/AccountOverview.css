@@ -1,0 +1,11 @@
+.account-overview {
+    padding: 20px;
+    background-color: #572C2C;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.account-overview p {
+    font-size: 16px;
+    color: #ccc;
+}
