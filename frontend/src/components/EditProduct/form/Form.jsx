@@ -94,7 +94,7 @@ const Form = ({ populateForm = false, id }) => {
                     required
                 />
             </div>
-            <button type="submit">Add Product</button>
+            <button type="submit">{populateForm ? "Edit" : "Add"} Product</button>
         </form>
     );
 }

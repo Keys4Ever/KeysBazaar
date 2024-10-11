@@ -7,6 +7,7 @@ import PaymentMethods from "../../components/PaymentMethods/PaymentMethods.jsx";
 import AdminSidebar from "../../components/AdminSidebar/AdminSidebar.jsx";
 import AddProduct from "../../components/AddProduct/AddProduct.jsx";
 import EditProduct from "../../components/EditProduct/EditProduct.jsx";
+import DeleteProduct from "../../components/DeleteProduct/DeleteProduct.jsx";
 import "./AccountPage.css";
 
 const AccountPage = () => {
@@ -24,7 +25,7 @@ const AccountPage = () => {
             case "edit-product":
                 return <EditProduct />;
             case "delete-product":
-                return <DeleteProduct />; // TODO
+                return <DeleteProduct />;
            /* case "orders": show all orders
                 return <Orders />; */
             default:

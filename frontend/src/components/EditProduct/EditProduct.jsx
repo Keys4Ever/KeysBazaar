@@ -1,9 +1,25 @@
+import { useState } from "react";
 import Form from "./form/Form";
 
 const EditProduct = () => {
-    //We need another shit for the id thing, but i already have done too much
+    const [id, setId] = useState("");
+
+    const handleInputChange = (event) =>{
+        setId(event.target.value);
+    }
+
     return (
-        <Form populateForm={true} id={123}/>
+        <>
+            <label htmlFor="product-id">ID</label>
+            <input
+            type="text"
+            id="product-id"
+            value={id}
+            onChange={handleInputChange}
+            placeholder="ID"
+            />
+            <Form populateForm={true} id={id} />
+        </>
     );
 };
 

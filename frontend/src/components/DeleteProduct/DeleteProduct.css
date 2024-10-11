@@ -1,0 +1,62 @@
+/* Estilos generales para la lista de productos */
+.product-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Espaciado entre tarjetas de producto */
+    padding: 10px;
+  }
+  
+  /* Estilos para la tarjeta del producto */
+  .delete-product-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #612e2e;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Estilos para la imagen del producto (dentro de un círculo) */
+  .delete-product-banner {
+    width: 120px;
+    height: auto;
+    object-fit:fill;
+  }
+  
+  /* Estilos para la información del producto */
+  .product-info {
+    flex-grow: 1;
+    margin-left: 20px;
+  }
+  
+  /* Estilos para el nombre del producto */
+  .delete-product-name {
+    font-size: 1.2em;
+    margin: 0;
+    color: white;
+  }
+  
+  /* Estilos para el ID del producto (muted text) */
+  .product-id {
+    font-size: 0.9em;
+    color: #888; /* Color tenue */
+    margin: 5px 0 0;
+  }
+  
+  /* Estilos para el botón de eliminar */
+  .delete-button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .delete-button svg {
+    stroke: #ff0000; /* Color del ícono de la basura */
+    transition: stroke 0.2s ease;
+  }
+  
+  .delete-button:hover svg {
+    stroke: #ff5050; /* Cambio de color al hover */
+  }
+  
