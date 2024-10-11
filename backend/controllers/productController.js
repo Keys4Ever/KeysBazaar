@@ -1,9 +1,19 @@
 import client from "../config/turso.js";
 
-// Controller to get all products
+// Controller to get all products with optional search query
 const getAllProducts = async (req, res) => {
     try {
+        const { search } = req.query;
         const { rows } = await client.execute("SELECT * FROM products");
+
+        // If a search query exists, filter the products
+        if (search) {
+            const filteredProducts = rows.filter(product =>
+                product.title.toLowerCase().includes(search.toLowerCase()) // Case insensitive search
+            );
+            return res.json(filteredProducts);
+        }
+
         res.json(rows);
     } catch (error) {
         res.status(500).json({ error: "Failed to retrieve products" });
@@ -45,7 +55,7 @@ const updateProduct = async (req, res) => {
     const { title, description, price } = req.body;
 
     if (!title || !productId || !description || isNaN(price)) {
-        res.status(400).json({ error: "Missing or incorrect arguments" });
+        return res.status(400).json({ error: "Missing or incorrect arguments" });
     }
 
     try {
@@ -63,7 +73,7 @@ const getOneProduct = async (req, res) => {
     const { id } = req.params;
     try {
         const { rows } = await client.execute({
-            sql: "SELECT * FROM users WHERE id = ?",
+            sql: "SELECT * FROM products WHERE id = ?", 
             args: [id],
         });
         
@@ -77,6 +87,5 @@ const getOneProduct = async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 };
-
 
 export { getAllProducts, createProduct, deleteProduct, updateProduct, getOneProduct };

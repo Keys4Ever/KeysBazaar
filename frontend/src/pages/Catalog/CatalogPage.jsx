@@ -7,21 +7,28 @@ import { useSearchParams } from 'react-router-dom';
 import ProductGrid from '../../components/ProductGrid/ProductGrid';
 
 const CatalogPage = () => {
-    const itemsPerPage = 3; // Corrected to 20 items
+    const itemsPerPage = 20;
     const [products, setProducts] = useState([]);
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const name =  searchParams.get('search');
-    console.log(name)
+    const [searchTerm, setSearchTerm] = useState(name || '');
+
     useEffect(() => {
-        if(name){
-            const filteredProducts = mockup.filter(product => 
-                product.name.toLowerCase().includes(name.toLowerCase())
-            );
-            setProducts(filteredProducts);
-        }else{
-            setProducts(mockup);
-        }
-    }, []);
+        const fetchInitialProducts = async () => {
+            try {
+                const response = await fetch(`/api/products?search=${encodeURIComponent(searchTerm)}`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                setProducts(data);
+            } catch (error) {
+                console.error("Failed to fetch products", error);
+            }
+        };
+
+        fetchInitialProducts();
+    }, [searchTerm]); // Refetch when searchTerm changes
 
     const {
         currentItems: currentProducts,
@@ -31,17 +38,29 @@ const CatalogPage = () => {
         isNextDisabled
     } = usePagination(products, itemsPerPage);
 
+    const handleSearchChange = (e) => {
+        const value = e.target.value;
+        setSearchTerm(value);
+        setSearchParams({ search: value });
+    };
+
     return (
         <div>
             <h1>Catalog</h1>
-            {name && <p>Search result for: {name} </p>}
+            <input
+                type="text"
+                placeholder="Search products..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+            />
+            {searchTerm && <p>Search result for: {searchTerm} </p>}
             <PaginationControls
                 currentPage={currentPage}
                 handlePreviousPage={handlePreviousPage}
                 handleNextPage={handleNextPage}
                 isNextDisabled={isNextDisabled}
             />
-            <ProductGrid currentProducts={currentProducts} classname='catalog'/>
+            <ProductGrid currentProducts={currentProducts} className='catalog' />
             <PaginationControls
                 currentPage={currentPage}
                 handlePreviousPage={handlePreviousPage}
