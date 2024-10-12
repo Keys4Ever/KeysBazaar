@@ -14,7 +14,7 @@ const CatalogPage = () => {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const response = await fetch(`/api/products?search=${encodeURIComponent(searchTerm)}`);
+                const response = await fetch(`https://localhost:3000/api/products?search=${encodeURIComponent(searchTerm)}`);
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }

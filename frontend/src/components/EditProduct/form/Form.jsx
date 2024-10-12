@@ -26,11 +26,53 @@ const Form = ({ populateForm = false, id }) => {
         }
     }, [populateForm, id]);
 
-    const handleSubmit = (e) => {
+    const handleAdd = async(e) => {
         e.preventDefault();
         console.log(product);
-        //Here should be some backend shit
+        const result = await addProduct(product);
+
+        if (result.success) {
+            alert("Product added successfully:", result.data);
+        } else {
+            console.error("Error adding product:", result.error);
+        }
     };
+
+    const handleEdit = async(e) =>{
+        e.preventDefault();
+
+        //backend shit
+    }
+
+    const addProduct = async (product) => {
+        try {
+            const response = await fetch(`http://localhost:3000/api/products/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    title: product.name,
+                    imageUrl: product.imageUrl,
+                    trailerUrl: product.trailerUrl,
+                    price: product.price,
+                    description: product.description
+                })
+            });
+    
+            if (!response.ok) {
+                const errorData = await response.json();
+                return { success: false, error: errorData };
+            }
+    
+            const data = await response.json();
+            return { success: true, data: data };
+        } catch (e) {
+            return { success: false, error: e.message };
+        }
+    };
+    
+    
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -38,7 +80,7 @@ const Form = ({ populateForm = false, id }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={populateForm ? handleEdit : handleAdd}>
             <div>
                 <label htmlFor="name">Name</label>
                 <input

@@ -23,12 +23,12 @@ const getAllProducts = async (req, res) => {
 // Controller to create a new product
 // Add img field
 const createProduct = async (req, res) => {
-    const { title, description, price } = req.body;
+    const { title, description, price, imageUrl, trailerUrl } = req.body;
 
     try {
         await client.execute({
-            sql: "INSERT INTO products (title, description, price) VALUES (?,?,?)",
-            args: [title, description, price],
+            sql: "INSERT INTO products (title, description, price, imageUrl, trailerUrl) VALUES (?,?,?,?,?)",
+            args: [title, description, price, imageUrl, trailerUrl],
         });
         res.status(201).json({ message: "Product created successfully" });
     } catch (error) {
@@ -51,10 +51,9 @@ const deleteProduct = async (req, res) => {
 };
 
 // Controller to update an existing product
-//#TODO Add img
 const updateProduct = async (req, res) => {
     const { productId } = req.params;
-    const { title, description, price } = req.body;
+    const { title, description, price, imageUrl, trailerUrl } = req.body;
 
     if (!title || !productId || !description || isNaN(price)) {
         return res.status(400).json({ error: "Missing or incorrect arguments" });
@@ -62,8 +61,8 @@ const updateProduct = async (req, res) => {
 
     try {
         await client.execute({
-            sql: "UPDATE products SET title = ?, description = ?, price = ? WHERE id = ?",
-            args: [title, description, price, productId],
+            sql: "UPDATE products SET title = ?, description = ?, price = ?, imageUrl = ?, trailerUrl = ? WHERE id = ?",
+            args: [title, description, price, imageUrl, trailerUrl, productId],
         });
         res.status(200).json({ message: "Product updated successfully" });
     } catch (error) {
