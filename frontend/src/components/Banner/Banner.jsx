@@ -5,7 +5,7 @@ const Banner = () => {
     const [popularProduct, setPopularProduct] = useState(null);
 
     useEffect(() => {
-        fetch("/api/products/most-popular")
+        fetch("http://localhost:3000/api/products/most-popular")
             .then((response) => response.json())
             .then((data) => setPopularProduct(data))
             .catch((error) =>
