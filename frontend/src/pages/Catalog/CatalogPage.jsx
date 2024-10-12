@@ -1,20 +1,18 @@
 import { useEffect, useState } from 'react';
-import mockup from '../../utils/mockup.json';
-import PaginationControls from '../../components/PaginationControls/PaginationControls';
-import usePagination from '../../hooks/usePagination'; // New hook
-import './CatalogPage.css';
 import { useSearchParams } from 'react-router-dom';
+import usePagination from '../../hooks/usePagination'; // New hook
+import PaginationControls from '../../components/PaginationControls/PaginationControls';
 import ProductGrid from '../../components/ProductGrid/ProductGrid';
+import './CatalogPage.css';
 
 const CatalogPage = () => {
     const itemsPerPage = 20;
     const [products, setProducts] = useState([]);
-    const [searchParams, setSearchParams] = useSearchParams();
-    const name =  searchParams.get('search');
-    const [searchTerm, setSearchTerm] = useState(name || '');
+    const [searchParams] = useSearchParams();
+    const searchTerm = searchParams.get('search') || '';
 
     useEffect(() => {
-        const fetchInitialProducts = async () => {
+        const fetchProducts = async () => {
             try {
                 const response = await fetch(`/api/products?search=${encodeURIComponent(searchTerm)}`);
                 if (!response.ok) {
@@ -27,7 +25,7 @@ const CatalogPage = () => {
             }
         };
 
-        fetchInitialProducts();
+        fetchProducts();
     }, [searchTerm]); // Refetch when searchTerm changes
 
     const {
@@ -38,22 +36,10 @@ const CatalogPage = () => {
         isNextDisabled
     } = usePagination(products, itemsPerPage);
 
-    const handleSearchChange = (e) => {
-        const value = e.target.value;
-        setSearchTerm(value);
-        setSearchParams({ search: value });
-    };
-
     return (
         <div>
             <h1>Catalog</h1>
-            <input
-                type="text"
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={handleSearchChange}
-            />
-            {searchTerm && <p>Search result for: {searchTerm} </p>}
+            {searchTerm && <p>Search result for: {searchTerm}</p>}
             <PaginationControls
                 currentPage={currentPage}
                 handlePreviousPage={handlePreviousPage}
