@@ -21,6 +21,7 @@ const getAllProducts = async (req, res) => {
 };
 
 // Controller to create a new product
+// Add img field
 const createProduct = async (req, res) => {
     const { title, description, price } = req.body;
 
@@ -50,6 +51,7 @@ const deleteProduct = async (req, res) => {
 };
 
 // Controller to update an existing product
+//#TODO Add img
 const updateProduct = async (req, res) => {
     const { productId } = req.params;
     const { title, description, price } = req.body;
@@ -69,6 +71,7 @@ const updateProduct = async (req, res) => {
     }
 };
 
+// Controller to get an specific product by id
 const getOneProduct = async (req, res) => {
     const { id } = req.params;
     try {
@@ -88,4 +91,26 @@ const getOneProduct = async (req, res) => {
     }
 };
 
-export { getAllProducts, createProduct, deleteProduct, updateProduct, getOneProduct };
+// Controller to get the most popular product
+const getMostPopularProduct = async (req, res) => {
+    try {
+        const { rows } = await client.execute(`
+            SELECT p.id, p.title, SUM(oi.quantity) AS total_sold
+            FROM products p
+            JOIN order_items oi ON p.id = oi.product_id
+            GROUP BY p.id
+            ORDER BY total_sold DESC
+            LIMIT 1;
+        `);
+
+        if (rows.length < 1) {
+            return res.status(404).json({ message: "No products found" });
+        }
+
+        res.status(200).json(rows[0]);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to retrieve the most popular product" });
+    }
+};
+
+export { getAllProducts, createProduct, deleteProduct, updateProduct, getOneProduct, getMostPopularProduct };

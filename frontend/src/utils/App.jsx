@@ -1,6 +1,7 @@
 import React from 'react';
 import './App.css';
 import mockProduct from '../utils/mockup.json';
+import Banner from '../components/Banner/Banner.jsx';
 import Section from '../components/Section/Section.jsx';
 import SectionSeparator from '../components/SectionSeparator/SectionSeparator.jsx';
 import ProductGrid from '../components/ProductGrid/ProductGrid.jsx';
@@ -8,6 +9,7 @@ import ProductGrid from '../components/ProductGrid/ProductGrid.jsx';
 function App() {
     return (
         <div className="App">
+            <Banner/>
 
             <Section title="Most Popular Games">
                 <ProductGrid currentProducts={mockProduct} classname="product"/>
@@ -33,5 +35,4 @@ function App() {
         </div>
     );
 }
-            //ماذا يجب أن أفعل في الفئات؟
 export default App;
