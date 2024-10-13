@@ -3,16 +3,48 @@ import client from "../config/turso.js";
 // Controller to get all products with optional search query
 const getAllProducts = async (req, res) => {
     try {
-        const { search } = req.query;
-        const { rows } = await client.execute("SELECT * FROM products");
+        const { search, minPrice, maxPrice } = req.query;
+        const categories = req.query.categories || [];
 
-        // If a search query exists, filter the products
+        let query = `
+            SELECT p.*, GROUP_CONCAT(c.name) AS categories
+            FROM products p
+            LEFT JOIN product_categories pc ON p.id = pc.product_id
+            LEFT JOIN categories c ON pc.category_id = c.id
+            WHERE 1=1
+        `;
+
+        const params = [];
+
+        // Search term filter
         if (search) {
-            const filteredProducts = rows.filter(product =>
-                product.title.toLowerCase().includes(search.toLowerCase()) // Case insensitive search
-            );
-            return res.json(filteredProducts);
+            query += " AND LOWER(p.title) LIKE ?";
+            params.push(`%${search.toLowerCase()}%`);
         }
+
+        // Min price filter
+        if (minPrice) {
+            query += " AND p.price >= ?";
+            params.push(minPrice);
+        }
+
+        // Max price filter
+        if (maxPrice) {
+            query += " AND p.price <= ?";
+            params.push(maxPrice);
+        }
+
+        // Multi-category filter by category names
+        if (categories.length > 0) {
+            // Expecting categories to be passed as multiple query parameters, example: ?categories=Electronics&categories=Smartphones
+            const categoryList = Array.isArray(categories) ? categories : [categories];
+            query += ` AND c.name IN (${categoryList.map(() => '?').join(', ')})`;
+            params.push(...categoryList);
+        }
+
+        query += " GROUP BY p.id";
+
+        const { rows } = await client.execute(query, params);
 
         res.json(rows);
     } catch (error) {
@@ -21,17 +53,32 @@ const getAllProducts = async (req, res) => {
 };
 
 // Controller to create a new product
-// Add img field
+//#TODO Add img field
 const createProduct = async (req, res) => {
-    const { title, description, price } = req.body;
+    const { title, description, price, categoryIds } = req.body;
+
+    if (!title || !description || isNaN(price) || !Array.isArray(categoryIds) || categoryIds.length === 0) {
+        return res.status(400).json({ error: "Invalid input. Please provide title, description, price, and at least one category." });
+    }
 
     try {
-        await client.execute({
-            sql: "INSERT INTO products (title, description, price) VALUES (?,?,?)",
+        const result = await client.execute({
+            sql: "INSERT INTO products (title, description, price) VALUES (?, ?, ?)",
             args: [title, description, price],
         });
+
+        const productId = result.insertId;
+
+        for (const categoryId of categoryIds) {
+            await client.execute({
+                sql: "INSERT INTO product_categories (product_id, category_id) VALUES (?, ?)",
+                args: [productId, categoryId],
+            });
+        }
+
         res.status(201).json({ message: "Product created successfully" });
     } catch (error) {
+        console.error("Error creating product:", error);
         res.status(500).json({ error: "Failed to create product" });
     }
 };
