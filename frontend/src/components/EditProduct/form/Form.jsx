@@ -11,18 +11,25 @@ const Form = ({ populateForm = false, id }) => {
         description: ''
     });
 
+    
     useEffect(() => {
-        if (populateForm) {
-            const thing = mockup.find(product => product.productId == id);
-            if (thing) {
-                setProduct({
-                    name: thing.name,
-                    imageUrl: thing.banner,
-                    trailerUrl: thing.trailer,
-                    price: thing.price,
-                    description: thing.description
-                });
-            }
+        if (populateForm && id) {
+            setTimeout(() => {
+                fetch(`http://localhost:3000/api/products/${id}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        setProduct({
+                            name: data.title,
+                            imageUrl: data.imageUrl,
+                            trailerUrl: data.trailerUrl,
+                            price: data.price,
+                            description: data.description
+                        });
+                    })
+                    .catch(error => {
+                        console.error("Error fetching product:", error);
+                    });
+            }, 200);
         }
     }, [populateForm, id]);
 
