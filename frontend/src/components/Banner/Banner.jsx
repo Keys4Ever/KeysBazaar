@@ -5,7 +5,7 @@ const Banner = () => {
     const [popularProduct, setPopularProduct] = useState(null);
 
     useEffect(() => {
-        fetch("/api/products/most-popular")
+        fetch("http://localhost:3000/api/products/most-popular")
             .then((response) => response.json())
             .then((data) => setPopularProduct(data))
             .catch((error) =>
@@ -17,16 +17,11 @@ const Banner = () => {
         return <div>Error</div>;
     }
 
-    //#TODO Use later an img field
     const backgroundImageUrl = "https://gaming-cdn.com/img/products/4378/pcover/1920x620/4378.jpg?v=1683706883";
 
     return (
-        <div
-            className="banner"
-            style={{
-                backgroundImage: `url(${backgroundImageUrl})`,
-            }}
-        >
+        <div className="banner">
+            <img src={backgroundImageUrl} alt="Popular product background" />
             <div className="banner-overlay"></div>
             <div className="banner-content">
                 <h2>{popularProduct.title}</h2>

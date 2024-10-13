@@ -98,10 +98,9 @@ const deleteProduct = async (req, res) => {
 };
 
 // Controller to update an existing product
-//#TODO Add img
 const updateProduct = async (req, res) => {
     const { productId } = req.params;
-    const { title, description, price } = req.body;
+    const { title, description, price, imageUrl, trailerUrl } = req.body;
 
     if (!title || !productId || !description || isNaN(price)) {
         return res.status(400).json({ error: "Missing or incorrect arguments" });
@@ -109,8 +108,8 @@ const updateProduct = async (req, res) => {
 
     try {
         await client.execute({
-            sql: "UPDATE products SET title = ?, description = ?, price = ? WHERE id = ?",
-            args: [title, description, price, productId],
+            sql: "UPDATE products SET title = ?, description = ?, price = ?, imageUrl = ?, trailerUrl = ? WHERE id = ?",
+            args: [title, description, price, imageUrl, trailerUrl, productId],
         });
         res.status(200).json({ message: "Product updated successfully" });
     } catch (error) {
@@ -120,21 +119,22 @@ const updateProduct = async (req, res) => {
 
 // Controller to get an specific product by id
 const getOneProduct = async (req, res) => {
-    const { id } = req.params;
+    const { productId } = req.params;
     try {
         const { rows } = await client.execute({
             sql: "SELECT * FROM products WHERE id = ?", 
-            args: [id],
+            args: [productId],
         });
         
         if (rows.length < 1) {
-            return res.status(404).json({ error: `Can't find a product with id: ${id}` });
+            return res.status(404).json({ error: `Can't find a product with id: ${productId}` });
         }
         
         res.status(200).json(rows[0]);
         
     } catch (e) {
-        res.status(500).json({ error: "Internal server error" });
+        console.error(e);
+        res.status(500).json({ error: "Internal server error"});
     }
 };
 
