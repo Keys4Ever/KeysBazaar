@@ -8,9 +8,10 @@ const Form = ({ populateForm = false, id }) => {
         imageUrl: '',
         trailerUrl: '',
         price: '',
-        description: ''
+        description: '',
+        categoryIds: []
     });
-
+    
     
     useEffect(() => {
         if (populateForm && id) {
@@ -23,7 +24,8 @@ const Form = ({ populateForm = false, id }) => {
                             imageUrl: data.imageUrl,
                             trailerUrl: data.trailerUrl,
                             price: data.price,
-                            description: data.description
+                            description: data.description,
+                            categoryIds: data.categoryIds || []
                         });
                     })
                     .catch(error => {
@@ -32,6 +34,7 @@ const Form = ({ populateForm = false, id }) => {
             }, 200);
         }
     }, [populateForm, id]);
+    
 
     const handleAdd = async(e) => {
         e.preventDefault();
@@ -63,7 +66,8 @@ const Form = ({ populateForm = false, id }) => {
                     imageUrl: product.imageUrl,
                     trailerUrl: product.trailerUrl,
                     price: product.price,
-                    description: product.description
+                    description: product.description,
+                    categoryIds: product.categoryIds // Enviar categoryIds al backend
                 })
             });
     
@@ -83,8 +87,13 @@ const Form = ({ populateForm = false, id }) => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setProduct({ ...product, [name]: value });
-    };
+    
+        if (name === "categoryIds") {
+            setProduct({ ...product, categoryIds: value.split(',').map(id => parseInt(id.trim(), 10)) });
+        } else {
+            setProduct({ ...product, [name]: value });
+        }
+    };    
 
     return (
         <form onSubmit={populateForm ? handleEdit : handleAdd}>
@@ -121,6 +130,19 @@ const Form = ({ populateForm = false, id }) => {
                     required
                 />
             </div>
+            {!populateForm && (
+                <div>
+                <label htmlFor="categoryIds">Category IDs</label>
+                <input
+                    type="text"
+                    id="categoryIds"
+                    name="categoryIds"
+                    value={product.categoryIds.join(', ')}
+                    onChange={handleChange}
+                    required
+                />
+               </div>
+            )}
             <div>
                 <label htmlFor="price">Price</label>
                 <input

@@ -85,11 +85,11 @@ const createProduct = async (req, res) => {
 
 // Controller to delete an existing product
 const deleteProduct = async (req, res) => {
-    const { id } = req.params;
+    const { productId } = req.params;
     try {
         await client.execute({
             sql: "DELETE FROM products WHERE id = ?",
-            args: [id],
+            args: [productId],
         });
         res.status(200).json({ message: "Product deleted successfully" });
     } catch (error) {
