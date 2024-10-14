@@ -9,7 +9,6 @@ KeysBazaar simulates the core functionalities of a typical e-commerce platform, 
 ## Features
 
 - **Product Listing**: Browse a catalog of products by category.
-- **Wishlist**: Save items for future reference.
 - **Shopping Cart**: Add and manage products in the cart.
 - **User Profiles**: Different user roles are planned (Admin, Registered User, Guest).
 - **Local Storage for Guests**: Non-registered users (guests) can save their cart and wishlist in local storage.
