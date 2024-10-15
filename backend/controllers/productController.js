@@ -53,14 +53,15 @@ const getAllProducts = async (req, res) => {
 const createProduct = async (req, res) => {
     const { title, description, price, categoryIds, imageUrl, trailerUrl } = req.body;
 
+    const transaction = client.transaction("write");
+
     if (!title || !description || isNaN(price) || !Array.isArray(categoryIds) || categoryIds.length === 0) {
         return res.status(400).json({ error: "Invalid input. Please provide title, description, price, and at least one category." });
     }
 
     try {
-        await client.execute("BEGIN");
 
-        const result = await client.execute({
+        const result = (await transaction).execute({
             sql: "INSERT INTO products (title, description, price, imageUrl, trailerUrl) VALUES (?, ?, ?, ?, ?)",
             args: [title, description, price, imageUrl || null, trailerUrl || null],
         });
@@ -68,17 +69,17 @@ const createProduct = async (req, res) => {
         const productId = result.insertId;
 
         for (const categoryId of categoryIds) {
-            await client.execute({
+            (await transaction).execute({
                 sql: "INSERT INTO product_categories (product_id, category_id) VALUES (?, ?)",
                 args: [productId, categoryId],
             });
         }
 
-        await client.execute("COMMIT");
+        (await transaction).commit();
 
         res.status(201).json({ message: "Product created successfully" });
     } catch (error) {
-        await client.execute("ROLLBACK");
+        (await transaction).rollback();
         console.error("Error creating product:", error);
         res.status(500).json({ error: "Failed to create product" });
     }
