@@ -49,6 +49,7 @@ const getAllProducts = async (req, res) => {
 };
 
 // Controller to create a new product
+// Categories are optional
 const createProduct = async (req, res) => {
     const { title, description, price, categoryIds, imageUrl, trailerUrl } = req.body;
 
@@ -84,6 +85,7 @@ const createProduct = async (req, res) => {
 };
 
 // Controller to delete an existing product
+// #TEST If a product is deleted, its relationships in product-category are deleted too?
 const deleteProduct = async (req, res) => {
     const { productId } = req.params;
 
@@ -99,6 +101,9 @@ const deleteProduct = async (req, res) => {
 };
 
 // Controller to update an existing product
+// #TODO conserveCategories? [default]
+// false => delete previous categories
+// if categories are passed here, it will add them to the product (product already in that category? continue with next)
 const updateProduct = async (req, res) => {
     const { productId } = req.params;
     const { title, description, price, imageUrl, trailerUrl } = req.body;
