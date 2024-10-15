@@ -11,6 +11,15 @@ const Form = ({ populateForm = false, id }) => {
         description: '',
         categoryIds: []
     });
+
+    const [originalProduct, setOriginalProduct] = useState({
+        name: '',
+        imageUrl: '',
+        trailerUrl: '',
+        price: '',
+        description: '',
+        categoryIds: []
+    })
     
     
     useEffect(() => {
@@ -20,6 +29,14 @@ const Form = ({ populateForm = false, id }) => {
                     .then(res => res.json())
                     .then(data => {
                         setProduct({
+                            name: data.title,
+                            imageUrl: data.imageUrl,
+                            trailerUrl: data.trailerUrl,
+                            price: data.price,
+                            description: data.description,
+                            categoryIds: data.categoryIds || []
+                        });
+                        setOriginalProduct({
                             name: data.title,
                             imageUrl: data.imageUrl,
                             trailerUrl: data.trailerUrl,
@@ -50,8 +67,14 @@ const Form = ({ populateForm = false, id }) => {
 
     const handleEdit = async(e) =>{
         e.preventDefault();
+        console.log('Product: ', product, " Original product: ", originalProduct);
+        const result = await editProduct(product, originalProduct);
 
-        //backend shit
+        if (result.success) {
+            alert("Product updated successfully:", result.data);
+        } else {
+            console.error("Error adding product:", result.error);
+        }
     }
 
     const addProduct = async (product) => {
@@ -67,7 +90,7 @@ const Form = ({ populateForm = false, id }) => {
                     trailerUrl: product.trailerUrl,
                     price: product.price,
                     description: product.description,
-                    categoryIds: product.categoryIds // Enviar categoryIds al backend
+                    categoryIds: product.categoryIds
                 })
             });
     
@@ -80,6 +103,48 @@ const Form = ({ populateForm = false, id }) => {
             return { success: true, data: data };
         } catch (e) {
             return { success: false, error: e.message };
+        }
+    };
+
+    const editProduct = async(product, originalProduct) => {
+        try {
+            let bodyData = {};
+            let somethingHasChanged = false;
+            
+            for (let key in product) {
+                if (product[key] !== originalProduct[key]) {
+                    bodyData[key] = product[key];
+                    if(!somethingHasChanged){
+                        somethingHasChanged = true;
+                    }
+                }
+            }
+            
+            if(somethingHasChanged){
+                const response = await fetch(`http://localhost:3000/api/products/${id}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(bodyData), 
+                });
+            if (!response.ok) {
+                const errorData = await response.json();
+                return { success: false, error: errorData };
+            }
+    
+            const data = await response.json();
+            return { success: true, data: data };
+            }else{
+                alert("Nothing has changed");
+                return { success: false, error: 'Nothing changed.' };
+
+            }
+            
+        } catch (e) {
+            console.error(e);
+            return { success: false, error: e.message };
+
         }
     };
     
