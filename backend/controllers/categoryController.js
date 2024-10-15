@@ -82,34 +82,43 @@ const updateCategory = async (req, res) => {
 // Delete a category
 const deleteCategory = async (req, res) => {
     const { id } = req.params;
+    const transaction = client.transaction("write");
 
     try {
-        await client.execute("BEGIN");
 
         // Delete related product-category associations
-        await client.execute({
+        (await transaction).execute({
             sql: "DELETE FROM product_categories WHERE category_id = ?",
             args: [id],
         });
 
         // Delete the category itself
-        const result = await client.execute({
+        const result = (await transaction).execute({
             sql: "DELETE FROM categories WHERE id = ?",
             args: [id],
         });
 
         if (result.changes === 0) {
-            await client.execute("ROLLBACK");
-            return res.status(404).json({ message: "Category not found" });
+            throw new Error("CategoryNotFound");
         }
 
-        await client.execute("COMMIT");
+        (await transaction).commit();
 
         res.status(200).json({ message: "Category deleted successfully" });
     } catch (error) {
-        await client.execute("ROLLBACK");
-        console.error("Error deleting category:", error);
-        res.status(500).json({ error: "Failed to delete category" });
+        try {
+            // rollback if it fails
+            (await transaction).rollback();
+        } catch (rollbackError) {
+            console.error("Error during rollback:", rollbackError);
+        }
+
+        if (error.message === "CategoryNotFound") {
+            res.status(404).json({ message: "Category not found" });
+        } else {
+            console.error("Error deleting category:", error);
+            res.status(500).json({ error: "Failed to delete category" });
+        }
     }
 };
 
