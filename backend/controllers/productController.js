@@ -49,18 +49,16 @@ const getAllProducts = async (req, res) => {
 };
 
 // Controller to create a new product
-// Categories are optional
 const createProduct = async (req, res) => {
     const { title, description, price, categoryIds, imageUrl, trailerUrl } = req.body;
 
     const transaction = client.transaction("write");
 
-    if (!title || !description || isNaN(price) || !Array.isArray(categoryIds) || categoryIds.length === 0) {
-        return res.status(400).json({ error: "Invalid input. Please provide title, description, price, and at least one category." });
+    if (!title || !description || isNaN(price)) {
+        return res.status(400).json({ error: "Invalid input. Please provide title, description, and price." });
     }
 
     try {
-
         const result = (await transaction).execute({
             sql: "INSERT INTO products (title, description, price, imageUrl, trailerUrl) VALUES (?, ?, ?, ?, ?)",
             args: [title, description, price, imageUrl || null, trailerUrl || null],
@@ -68,11 +66,13 @@ const createProduct = async (req, res) => {
 
         const productId = result.insertId;
 
-        for (const categoryId of categoryIds) {
-            (await transaction).execute({
-                sql: "INSERT INTO product_categories (product_id, category_id) VALUES (?, ?)",
-                args: [productId, categoryId],
-            });
+        if (Array.isArray(categoryIds) && categoryIds.length > 0) {
+            for (const categoryId of categoryIds) {
+                (await transaction).execute({
+                    sql: "INSERT INTO product_categories (product_id, category_id) VALUES (?, ?)",
+                    args: [productId, categoryId],
+                });
+            }
         }
 
         (await transaction).commit();
@@ -86,7 +86,6 @@ const createProduct = async (req, res) => {
 };
 
 // Controller to delete an existing product
-// #TEST If a product is deleted, its relationships in product-category are deleted too?
 const deleteProduct = async (req, res) => {
     const { productId } = req.params;
 
@@ -215,4 +214,60 @@ const getMostPopularProduct = async (req, res) => {
     }
 };
 
-export { getAllProducts, createProduct, deleteProduct, updateProduct, getOneProduct, getMostPopularProduct };
+// Adds a category to a product
+// body mode = name/id
+// Can pass an array of name/id
+const addCategoryToProduct = async (req, res) => {
+    const { productId } = req.params;
+    const { categoryId, categoryName } = req.body;
+
+    if (!productId) {
+        return res.status(400).json({ error: "Missing product ID" });
+    }
+
+    if (!categoryId && !categoryName) {
+        return res.status(400).json({ error: "Missing category ID or category name" });
+    }
+
+    try {
+        let resolvedCategoryId = categoryId;
+
+        if (categoryName) {
+            const { rows: categoryRows } = await client.execute({
+                sql: "SELECT id FROM categories WHERE name = ?",
+                args: [categoryName],
+            });
+
+            if (categoryRows.length === 0) {
+                return res.status(404).json({ error: `Category '${categoryName}' not found` });
+            }
+
+            resolvedCategoryId = categoryRows[0].id;
+        }
+
+        const { rows: existingRelation } = await client.execute({
+            sql: "SELECT * FROM product_categories WHERE product_id = ? AND category_id = ?",
+            args: [productId, resolvedCategoryId],
+        });
+
+        if (existingRelation.length > 0) {
+            return res.status(400).json({ error: "Product is already associated with this category" });
+        }
+
+        await client.execute({
+            sql: "INSERT INTO product_categories (product_id, category_id) VALUES (?, ?)",
+            args: [productId, resolvedCategoryId],
+        });
+
+        res.status(201).json({
+            message: "Category added to product successfully",
+            productId,
+            categoryId: resolvedCategoryId,
+        });
+    } catch (error) {
+        console.error("Error adding category to product:", error);
+        res.status(500).json({ error: "Failed to add category to product" });
+    }
+};
+
+export { getAllProducts, createProduct, deleteProduct, updateProduct, getOneProduct, getMostPopularProduct, addCategoryToProduct };

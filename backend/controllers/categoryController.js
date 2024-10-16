@@ -46,7 +46,7 @@ const createCategory = async (req, res) => {
             args: [name],
         });
 
-        res.status(201).json({ id: result.insertId, name });
+        res.status(201).json({ message: "Category created successfully" });
     } catch (error) {
         console.error("Error creating category:", error);
         res.status(500).json({ error: "Failed to create category" });
@@ -85,14 +85,11 @@ const deleteCategory = async (req, res) => {
     const transaction = client.transaction("write");
 
     try {
-
-        // Delete related product-category associations
         (await transaction).execute({
             sql: "DELETE FROM product_categories WHERE category_id = ?",
             args: [id],
         });
 
-        // Delete the category itself
         const result = (await transaction).execute({
             sql: "DELETE FROM categories WHERE id = ?",
             args: [id],
@@ -107,7 +104,6 @@ const deleteCategory = async (req, res) => {
         res.status(200).json({ message: "Category deleted successfully" });
     } catch (error) {
         try {
-            // rollback if it fails
             (await transaction).rollback();
         } catch (rollbackError) {
             console.error("Error during rollback:", rollbackError);
