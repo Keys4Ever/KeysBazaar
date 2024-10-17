@@ -3,7 +3,7 @@ import client from "../config/turso.js";
 // Controller to get all products with optional search query
 const getAllProducts = async (req, res) => {
     try {
-        const { search, minPrice, maxPrice, categories = [] } = req.query;
+        const { search = '', minPrice, maxPrice, categories = [] } = req.query;
 
         let query = `
             SELECT p.*, GROUP_CONCAT(c.name) AS categories
