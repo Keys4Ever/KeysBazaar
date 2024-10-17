@@ -52,34 +52,34 @@ const getAllProducts = async (req, res) => {
 const createProduct = async (req, res) => {
     const { title, description, price, categoryIds, imageUrl, trailerUrl } = req.body;
 
-    const transaction = client.transaction("write");
-
     if (!title || !description || isNaN(price)) {
         return res.status(400).json({ error: "Invalid input. Please provide title, description, and price." });
     }
 
+    const transaction = await client.transaction("write");
+
     try {
-        const result = (await transaction).execute({
-            sql: "INSERT INTO products (title, description, price, imageUrl, trailerUrl) VALUES (?, ?, ?, ?, ?)",
+        const result = await transaction.execute({
+            sql: "INSERT INTO products (title, description, price, imageUrl, trailerUrl) VALUES (?, ?, ?, ?, ?) RETURNING id",
             args: [title, description, price, imageUrl || null, trailerUrl || null],
         });
 
-        const productId = result.insertId;
+        const productId = result.rows[0].id;
 
         if (Array.isArray(categoryIds) && categoryIds.length > 0) {
             for (const categoryId of categoryIds) {
-                (await transaction).execute({
+                await transaction.execute({
                     sql: "INSERT INTO product_categories (product_id, category_id) VALUES (?, ?)",
                     args: [productId, categoryId],
                 });
             }
         }
 
-        (await transaction).commit();
+        await transaction.commit();
 
-        res.status(201).json({ message: "Product created successfully" });
+        res.status(201).json({ message: "Product created successfully", productId });
     } catch (error) {
-        (await transaction).rollback();
+        await transaction.rollback();
         console.error("Error creating product:", error);
         res.status(500).json({ error: "Failed to create product" });
     }
