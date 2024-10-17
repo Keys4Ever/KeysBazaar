@@ -11,6 +11,4 @@ router.get("/:productId", getOneProduct);
 router.put('/:productId', updateProduct);
 router.delete("/:productId", deleteProduct);
 
-// router.patch('/:productId/category', addCategoryToProduct);
-
 export default router;
