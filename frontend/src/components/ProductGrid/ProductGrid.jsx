@@ -6,12 +6,12 @@ const ProductGrid = ({ currentProducts, classname, ref }) => {
     <div className={`${classname}-grid`} ref={ref}>
       {currentProducts.map((product) => (
         <ProductCard
-          banner={product.banner}
-          name={product.name}
+          banner={product.imageUrl}
+          name={product.title}
           price={product.price}
-          productId={product.productId}
-          trailer={product.trailer}
-          key={product.productId}
+          productId={product.id}
+          trailer={product.trailerUrl}
+          key={product.id}
         />
       ))}
     </div>
