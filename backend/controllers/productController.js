@@ -103,7 +103,7 @@ const deleteProduct = async (req, res) => {
 // Controller to update an existing product
 const updateProduct = async (req, res) => {
     const { productId } = req.params;
-    const { title, description, price, imageUrl, trailerUrl, categories, conserveCategories = true } = req.body;
+    const { title, description, price, imageUrl, trailerUrl, categoryIds, conserveCategories = true } = req.body;
 
     if (!productId) {
         return res.status(400).json({ error: "Missing product ID" });
@@ -137,7 +137,7 @@ const updateProduct = async (req, res) => {
         params.push(trailerUrl);
     }
 
-    if (fields.length === 0 && !categories) {
+    if (fields.length === 0 && !categoryIds) {
         return res.status(400).json({ error: "No fields to update" });
     }
 
@@ -151,7 +151,7 @@ const updateProduct = async (req, res) => {
             });
         }
 
-        if (categories) {
+        if (categoryIds) {
             if (!conserveCategories) {
                 (await transaction).execute({
                     sql: `DELETE FROM product_categories WHERE product_id = ?`,
@@ -159,7 +159,7 @@ const updateProduct = async (req, res) => {
                 });
             }
 
-            for (const category of categories) {
+            for (const category of categoryIds) {
                 const [existingCategory] = (await transaction).execute({
                     sql: `SELECT 1 FROM product_categories WHERE product_id = ? AND category_id = ?`,
                     args: [productId, category],
