@@ -101,12 +101,9 @@ const deleteProduct = async (req, res) => {
 };
 
 // Controller to update an existing product
-// #TODO conserveCategories? [default]
-// false => delete previous categories
-// if categories are passed here, it will add them to the product (product already in that category? continue with next)
 const updateProduct = async (req, res) => {
     const { productId } = req.params;
-    const { title, description, price, imageUrl, trailerUrl } = req.body;
+    const { title, description, price, imageUrl, trailerUrl, categories, conserveCategories = true } = req.body;
 
     if (!productId) {
         return res.status(400).json({ error: "Missing product ID" });
@@ -140,20 +137,54 @@ const updateProduct = async (req, res) => {
         params.push(trailerUrl);
     }
 
-    if (fields.length === 0) {
+    if (fields.length === 0 && !categories) {
         return res.status(400).json({ error: "No fields to update" });
     }
 
-    params.push(productId);
+    const transaction = client.transaction("write");
 
     try {
-        await client.execute({
-            sql: `UPDATE products SET ${fields.join(", ")} WHERE id = ?`,
-            args: params,
-        });
+        if (fields.length > 0) {
+            (await transaction).execute({
+                sql: `UPDATE products SET ${fields.join(", ")} WHERE id = ?`,
+                args: [...params, productId],
+            });
+        }
+
+        if (categories) {
+            if (!conserveCategories) {
+                (await transaction).execute({
+                    sql: `DELETE FROM product_categories WHERE product_id = ?`,
+                    args: [productId],
+                });
+            }
+
+            for (const category of categories) {
+                const [existingCategory] = (await transaction).execute({
+                    sql: `SELECT 1 FROM product_categories WHERE product_id = ? AND category_id = ?`,
+                    args: [productId, category],
+                });
+
+                if (!existingCategory.length) {
+                    (await transaction).execute({
+                        sql: `INSERT INTO product_categories (product_id, category_id) VALUES (?, ?)`,
+                        args: [productId, category],
+                    });
+                }
+            }
+        }
+
+        (await transaction).commit();
 
         res.status(200).json({ message: "Product updated successfully" });
     } catch (error) {
+        try {
+            (await transaction).rollback();
+        } catch (rollbackError) {
+            console.error("Error during rollback:", rollbackError);
+        }
+
+        console.error("Error updating product:", error);
         res.status(500).json({ error: "Failed to update product" });
     }
 };
@@ -215,59 +246,59 @@ const getMostPopularProduct = async (req, res) => {
 };
 
 // Adds a category to a product
-// body mode = name/id
+// mode = name/id (id default)
 // Can pass an array of name/id
-const addCategoryToProduct = async (req, res) => {
-    const { productId } = req.params;
-    const { categoryId, categoryName } = req.body;
+// const addCategoryToProduct = async (req, res) => {
+//     const { productId } = req.params;
+//     const { categoryId, categoryName } = req.body;
 
-    if (!productId) {
-        return res.status(400).json({ error: "Missing product ID" });
-    }
+//     if (!productId) {
+//         return res.status(400).json({ error: "Missing product ID" });
+//     }
 
-    if (!categoryId && !categoryName) {
-        return res.status(400).json({ error: "Missing category ID or category name" });
-    }
+//     if (!categoryId && !categoryName) {
+//         return res.status(400).json({ error: "Missing category ID or category name" });
+//     }
 
-    try {
-        let resolvedCategoryId = categoryId;
+//     try {
+//         let resolvedCategoryId = categoryId;
 
-        if (categoryName) {
-            const { rows: categoryRows } = await client.execute({
-                sql: "SELECT id FROM categories WHERE name = ?",
-                args: [categoryName],
-            });
+//         if (categoryName) {
+//             const { rows: categoryRows } = await client.execute({
+//                 sql: "SELECT id FROM categories WHERE name = ?",
+//                 args: [categoryName],
+//             });
 
-            if (categoryRows.length === 0) {
-                return res.status(404).json({ error: `Category '${categoryName}' not found` });
-            }
+//             if (categoryRows.length === 0) {
+//                 return res.status(404).json({ error: `Category '${categoryName}' not found` });
+//             }
 
-            resolvedCategoryId = categoryRows[0].id;
-        }
+//             resolvedCategoryId = categoryRows[0].id;
+//         }
 
-        const { rows: existingRelation } = await client.execute({
-            sql: "SELECT * FROM product_categories WHERE product_id = ? AND category_id = ?",
-            args: [productId, resolvedCategoryId],
-        });
+//         const { rows: existingRelation } = await client.execute({
+//             sql: "SELECT * FROM product_categories WHERE product_id = ? AND category_id = ?",
+//             args: [productId, resolvedCategoryId],
+//         });
 
-        if (existingRelation.length > 0) {
-            return res.status(400).json({ error: "Product is already associated with this category" });
-        }
+//         if (existingRelation.length > 0) {
+//             return res.status(400).json({ error: "Product is already associated with this category" });
+//         }
 
-        await client.execute({
-            sql: "INSERT INTO product_categories (product_id, category_id) VALUES (?, ?)",
-            args: [productId, resolvedCategoryId],
-        });
+//         await client.execute({
+//             sql: "INSERT INTO product_categories (product_id, category_id) VALUES (?, ?)",
+//             args: [productId, resolvedCategoryId],
+//         });
 
-        res.status(201).json({
-            message: "Category added to product successfully",
-            productId,
-            categoryId: resolvedCategoryId,
-        });
-    } catch (error) {
-        console.error("Error adding category to product:", error);
-        res.status(500).json({ error: "Failed to add category to product" });
-    }
-};
+//         res.status(201).json({
+//             message: "Category added to product successfully",
+//             productId,
+//             categoryId: resolvedCategoryId,
+//         });
+//     } catch (error) {
+//         console.error("Error adding category to product:", error);
+//         res.status(500).json({ error: "Failed to add category to product" });
+//     }
+// };
 
-export { getAllProducts, createProduct, deleteProduct, updateProduct, getOneProduct, getMostPopularProduct, addCategoryToProduct };
+export { getAllProducts, createProduct, deleteProduct, updateProduct, getOneProduct, getMostPopularProduct };
