@@ -1,0 +1,17 @@
+.search-form {
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.clear-search {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    margin-left: 8px;
+}

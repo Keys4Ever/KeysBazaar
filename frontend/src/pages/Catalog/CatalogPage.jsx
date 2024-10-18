@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import usePagination from '../../hooks/usePagination'; // New hook
 import PaginationControls from '../../components/PaginationControls/PaginationControls';
 import ProductGrid from '../../components/ProductGrid/ProductGrid';
 import './CatalogPage.css';
@@ -8,51 +7,76 @@ import './CatalogPage.css';
 const CatalogPage = () => {
     const itemsPerPage = 20;
     const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [totalProducts, setTotalProducts] = useState(0);
     const [searchParams] = useSearchParams();
     const searchTerm = searchParams.get('search') || '';
 
+    const [currentPage, setCurrentPage] = useState(1);
+
+    const offset = (currentPage - 1) * itemsPerPage;
+
     useEffect(() => {
         const fetchProducts = async () => {
+            setLoading(true);
             try {
-                const response = await fetch(`http://localhost:3000/api/products?search=${encodeURIComponent(searchTerm)}`);
+                const response = await fetch(`http://localhost:3000/api/products?search=${encodeURIComponent(searchTerm)}&limit=${itemsPerPage}&offset=${offset}`);
+                
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
+                
                 const data = await response.json();
+                
                 setProducts(data);
+                const total = parseInt(response.headers.get('X-Total-Count'), 10) || 0;
+                setTotalProducts(total);
             } catch (error) {
                 console.error("Failed to fetch products", error);
+            } finally {
+                setLoading(false);
             }
         };
 
         fetchProducts();
-    }, [searchTerm]); // Refetch when searchTerm changes
+    }, [searchTerm, currentPage]);
 
-    const {
-        currentItems: currentProducts,
-        currentPage,
-        handleNextPage,
-        handlePreviousPage,
-        isNextDisabled
-    } = usePagination(products, itemsPerPage);
+    const totalPages = Math.ceil(totalProducts / itemsPerPage);
+
+    const handleNextPage = () => {
+        if (currentPage < totalPages) {
+            setCurrentPage(currentPage + 1);
+        }
+    };
+
+    const handlePreviousPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+        }
+    };
 
     return (
         <div>
             <h1>Catalog</h1>
-            {searchTerm && <p>Search result for: {searchTerm}</p>}
-            <PaginationControls
-                currentPage={currentPage}
-                handlePreviousPage={handlePreviousPage}
-                handleNextPage={handleNextPage}
-                isNextDisabled={isNextDisabled}
-            />
-            <ProductGrid currentProducts={currentProducts} className='catalog' />
-            <PaginationControls
-                currentPage={currentPage}
-                handlePreviousPage={handlePreviousPage}
-                handleNextPage={handleNextPage}
-                isNextDisabled={isNextDisabled}
-            />
+            {loading ? (
+                <p>Loading...</p>
+            ) : (
+                <>
+                    <PaginationControls
+                        currentPage={currentPage}
+                        handlePreviousPage={handlePreviousPage}
+                        handleNextPage={handleNextPage}
+                        isNextDisabled={currentPage >= totalPages}
+                    />
+                    <ProductGrid currentProducts={products} className='catalog' />
+                    <PaginationControls
+                        currentPage={currentPage}
+                        handlePreviousPage={handlePreviousPage}
+                        handleNextPage={handleNextPage}
+                        isNextDisabled={currentPage >= totalPages}
+                    />
+                </>
+            )}
         </div>
     );
 };

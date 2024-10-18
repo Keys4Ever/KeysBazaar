@@ -1,51 +1,99 @@
 import client from "../config/turso.js";
- 
+
 // Controller to get all products with optional search query
 const getAllProducts = async (req, res) => {
     try {
-        const { search = '', minPrice, maxPrice, categories = [] } = req.query;
+        const {
+            search = '',
+            minPrice = null,
+            maxPrice = null,
+            categories = [],
+            limit = 0,
+            offset = 0
+        } = req.query;
 
-        let query = `
+        let parsedLimit = parseInt(limit, 10);
+        let parsedOffset = parseInt(offset, 10);
+        let warnings = [];
+
+        if (isNaN(parsedLimit) || parsedLimit === 0 || parsedLimit === null) {
+            parsedLimit = null;
+            warnings.push("Invalid limit provided. Defaulting to no limit.");
+        }
+
+        if (isNaN(parsedOffset) || parsedOffset < 0) {
+            parsedOffset = 0;
+            warnings.push("Invalid offset provided. Defaulting to no offset.");
+        }
+
+        const { query: filterQuery, params: filterParams } = buildProductFilters({ search, minPrice, maxPrice, categories });
+
+        const countQuery = `
+            SELECT COUNT(DISTINCT p.id) AS total
+            FROM products p
+            LEFT JOIN product_categories pc ON p.id = pc.product_id
+            LEFT JOIN categories c ON pc.category_id = c.id
+            ${filterQuery}
+        `;
+
+        const { rows: countRows } = await client.execute(countQuery, filterParams);
+        const totalCount = countRows[0]?.total || 0;
+
+        let productQuery = `
             SELECT p.*, GROUP_CONCAT(c.name) AS categories
             FROM products p
             LEFT JOIN product_categories pc ON p.id = pc.product_id
             LEFT JOIN categories c ON pc.category_id = c.id
-            WHERE 1=1
+            ${filterQuery}
+            GROUP BY p.id
         `;
 
-        const params = [];
-
-        // Search term filter
-        if (search && search.trim()) {
-            query += " AND LOWER(p.title) LIKE ?";
-            params.push(`%${search.toLowerCase()}%`);
+        const productParams = [...filterParams];
+        if (parsedLimit !== null) {
+            productQuery += " LIMIT ? OFFSET ?";
+            productParams.push(parsedLimit, parsedOffset);
         }
 
-        // Min price filter
-        if (minPrice && !isNaN(minPrice)) {
-            query += " AND p.price >= ?";
-            params.push(minPrice);
+        const { rows } = await client.execute(productQuery, productParams);
+
+        res.set('X-Total-Count', totalCount.toString());
+
+        if (warnings.length > 0) {
+            res.set('X-Offset-Warning', warnings.join('; '));
         }
 
-        // Max price filter
-        if (maxPrice && !isNaN(maxPrice)) {
-            query += " AND p.price <= ?";
-            params.push(maxPrice);
-        }
-
-        // Multi-category filter by category names
-        if (Array.isArray(categories) && categories.length > 0) {
-            query += ` AND c.name IN (${categories.map(() => '?').join(', ')})`;
-            params.push(...categories);
-        }
-
-        query += " GROUP BY p.id";
-
-        const { rows } = await client.execute(query, params);
         res.json(rows);
     } catch (error) {
+        console.error("Error fetching products:", error);
         res.status(500).json({ error: "Failed to retrieve products" });
     }
+};
+
+const buildProductFilters = ({ search, minPrice, maxPrice, categories }) => {
+    let query = " WHERE 1=1";
+    const params = [];
+
+    if (search && search.trim()) {
+        query += " AND LOWER(p.title) LIKE ?";
+        params.push(`%${search.toLowerCase()}%`);
+    }
+
+    if (minPrice && !isNaN(minPrice)) {
+        query += " AND p.price >= ?";
+        params.push(minPrice);
+    }
+
+    if (maxPrice && !isNaN(maxPrice)) {
+        query += " AND p.price <= ?";
+        params.push(maxPrice);
+    }
+
+    if (Array.isArray(categories) && categories.length > 0) {
+        query += ` AND c.name IN (${categories.map(() => '?').join(', ')})`;
+        params.push(...categories);
+    }
+
+    return { query, params };
 };
 
 // Controller to create a new product
