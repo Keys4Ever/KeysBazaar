@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
-import mockupProduct from '../../utils/mockup.json';
+import mockupProduct from '@utils/mockup.json';
 import './ProductPage.css';
-import ProductSlider from '../../components/ProductSlider/ProductSlider';
+import ProductSlider from '@components/ProductSlider/ProductSlider';
 
 const ProductPage = () => {
     const { id } = useParams();

@@ -1,12 +1,12 @@
 import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import App from '../utils/App.jsx';
-import Layout from '../components/layout.jsx';
-import CatalogPage from '../pages/Catalog/CatalogPage.jsx';
-import CartPage from '../pages/Cart/CartPage.jsx';
-import AccountPage from '../pages/Account/AccountPage.jsx';
+import App from '@utils/App.jsx';
+import Layout from '@components/layout.jsx';
+import CatalogPage from '@pages/Catalog/CatalogPage.jsx';
+import CartPage from '@pages/Cart/CartPage.jsx';
+import AccountPage from '@pages/Account/AccountPage.jsx';
 
-const ProductPage = lazy(() => import('../pages/Product/ProductPage'));
+const ProductPage = lazy(() => import('@pages/Product/ProductPage'));
 
 const AppRoutes = () => {
     return (

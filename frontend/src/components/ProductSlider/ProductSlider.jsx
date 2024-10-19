@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import "./ProductSlider.css";
-import products from "../../utils/mockup.json";
-import ProductGrid from "../ProductGrid/ProductGrid.jsx";
+import products from "@utils/mockup.json";
+import ProductGrid from "@components/ProductGrid/ProductGrid.jsx";
 
 const ProductSlider = () => {
     const sliderRef = useRef(null);

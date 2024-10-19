@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
-import mockupCart from '../../utils/mockupCart.json';
-import mockup from '../../utils/mockup.json';
-import CartItem from '../../components/CartItem/CartItem.jsx';
+import mockupCart from '@utils/mockupCart.json';
+import mockup from '@utils/mockup.json';
+import CartItem from '@components/CartItem/CartItem.jsx';
 import './CartPage.css';
 
 const CartPage = () => {

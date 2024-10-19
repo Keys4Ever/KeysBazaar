@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Form from "../EditProduct/form/Form";
+import Form from "@components/EditProduct/form/Form.jsx";
 
 const AddProduct = () => {
 

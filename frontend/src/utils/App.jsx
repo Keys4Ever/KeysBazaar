@@ -1,10 +1,10 @@
 import React from 'react';
 import './App.css';
-import mockProduct from '../utils/mockup.json';
-import Banner from '../components/Banner/Banner.jsx';
-import Section from '../components/Section/Section.jsx';
-import SectionSeparator from '../components/SectionSeparator/SectionSeparator.jsx';
-import ProductGrid from '../components/ProductGrid/ProductGrid.jsx';
+import mockProduct from '@utils/mockup.json';
+import Banner from '@components/Banner/Banner.jsx';
+import Section from '@components/Section/Section.jsx';
+import SectionSeparator from '@components/SectionSeparator/SectionSeparator.jsx';
+import ProductGrid from '@components/ProductGrid/ProductGrid.jsx';
 
 function App() {
     return (

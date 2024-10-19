@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import NavRight from "./NavRight/NavRight.jsx";
-import SearchBar from "../SearchBar/SearchBar.jsx";
+import SearchBar from "@components/SearchBar/SearchBar.jsx";
 import "./NavBar.css";
-import logo from "../../assets/images/react.svg";
+import logo from "@assets/images/react.svg";
 
 const NavBar = () => {
     const navigate = useNavigate();

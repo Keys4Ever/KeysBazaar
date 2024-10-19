@@ -1,5 +1,5 @@
 import React from 'react';
-import ProductCard from "../ProductCard/ProductCard";
+import ProductCard from "@components/ProductCard/ProductCard";
 import "./ProductGrid.css"
 const ProductGrid = ({ currentProducts, gridName = 'undefined', ref }) => {
   return (

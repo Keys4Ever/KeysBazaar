@@ -1,13 +1,13 @@
 import { useState } from "react";
-import AccountOverview from "../../components/AccountOverview/AccountOverview.jsx"; 
-import AccountSidebar from "../../components/AccountSidebar/AccountSidebar.jsx";
-import OrderHistory from "../../components/OrderHistory/OrderHistory.jsx";
-import PersonalInfo from "../../components/PersonalInfo/PersonalInfo.jsx";
-import PaymentMethods from "../../components/PaymentMethods/PaymentMethods.jsx";
-import AdminSidebar from "../../components/AdminSidebar/AdminSidebar.jsx";
-import AddProduct from "../../components/AddProduct/AddProduct.jsx";
-import EditProduct from "../../components/EditProduct/EditProduct.jsx";
-import DeleteProduct from "../../components/DeleteProduct/DeleteProduct.jsx";
+import AccountOverview from "@components/AccountOverview/AccountOverview.jsx"; 
+import AccountSidebar from "@components/AccountSidebar/AccountSidebar.jsx";
+import OrderHistory from "@components/OrderHistory/OrderHistory.jsx";
+import PersonalInfo from "@components/PersonalInfo/PersonalInfo.jsx";
+import PaymentMethods from "@components/PaymentMethods/PaymentMethods.jsx";
+import AdminSidebar from "@components/AdminSidebar/AdminSidebar.jsx";
+import AddProduct from "@components/AddProduct/AddProduct.jsx";
+import EditProduct from "@components/EditProduct/EditProduct.jsx";
+import DeleteProduct from "@components/DeleteProduct/DeleteProduct.jsx";
 import "./AccountPage.css";
 
 const AccountPage = () => {

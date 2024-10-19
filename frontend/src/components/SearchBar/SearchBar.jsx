@@ -1,7 +1,7 @@
 // SearchBar.jsx
 import { useState } from "react";
-import searchIcon from "../../assets/images/magnifying-glass.svg";
-import clearIcon from "../../assets/images/clear-search.svg";
+import searchIcon from "@assets/images/magnifying-glass.svg";
+import clearIcon from "@assets/images/clear-search.svg";
 import "./SearchBar.css";
 
 const SearchBar = ({ onSearch }) => {

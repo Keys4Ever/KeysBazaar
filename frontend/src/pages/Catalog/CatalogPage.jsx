@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import PaginationControls from '../../components/PaginationControls/PaginationControls';
-import ProductGrid from '../../components/ProductGrid/ProductGrid';
-import usePagination from '../../hooks/usePagination';
+import PaginationControls from '@components/PaginationControls/PaginationControls';
+import ProductGrid from '@components/ProductGrid/ProductGrid';
+import usePagination from '@hooks/usePagination';
 import './CatalogPage.css';
 
 const CatalogPage = () => {
