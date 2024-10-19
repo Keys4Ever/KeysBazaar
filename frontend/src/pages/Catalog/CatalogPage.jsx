@@ -9,6 +9,7 @@ const CatalogPage = () => {
     const itemsPerPage = 20;
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null); // Track errors
     const [searchParams] = useSearchParams();
     const searchTerm = searchParams.get('search') || '';
 
@@ -25,18 +26,19 @@ const CatalogPage = () => {
     useEffect(() => {
         const fetchProducts = async () => {
             setLoading(true);
+            setError(null); // Reset error on new fetch
             try {
                 const response = await fetch(`http://localhost:3000/api/products?search=${encodeURIComponent(searchTerm)}&limit=${itemsPerPage}&offset=${offset}`);
                 
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    throw new Error('Failed to fetch products');
                 }
                 
                 const data = await response.json();
-                
                 setProducts(data);
             } catch (error) {
                 console.error("Failed to fetch products", error);
+                setError('There was an issue fetching products. Please try again later.');
             } finally {
                 setLoading(false);
             }
@@ -50,15 +52,10 @@ const CatalogPage = () => {
             <h1>Catalog</h1>
             {loading ? (
                 <p>Loading...</p>
+            ) : products.length === 0 ? (
+                <p>No products found</p>
             ) : (
                 <>
-                    <PaginationControls
-                        currentPage={currentPage}
-                        handlePreviousPage={handlePreviousPage}
-                        handleNextPage={handleNextPage}
-                        isNextDisabled={isNextDisabled}
-                        isPreviousDisabled={isPreviousDisabled}
-                    />
                     <ProductGrid currentProducts={products} gridName='catalog' />
                     <PaginationControls
                         currentPage={currentPage}
