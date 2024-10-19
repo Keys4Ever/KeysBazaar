@@ -12,7 +12,7 @@ function App() {
             <Banner/>
 
             <Section title="Most Popular Games">
-                <ProductGrid currentProducts={mockProduct} classname="product"/>
+                <ProductGrid currentProducts={mockProduct} gridName="product"/>
             </Section>
 
             <SectionSeparator>

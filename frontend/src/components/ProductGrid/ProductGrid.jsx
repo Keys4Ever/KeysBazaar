@@ -1,9 +1,9 @@
 import React from 'react';
 import ProductCard from "../ProductCard/ProductCard";
-
-const ProductGrid = ({ currentProducts, classname, ref }) => {
+import "./ProductGrid.css"
+const ProductGrid = ({ currentProducts, gridName = 'undefined', ref }) => {
   return (
-    <div className={`${classname}-grid`} ref={ref}>
+    <div className={`${gridName}-grid`} ref={ref}>
       {currentProducts.map((product) => (
         <ProductCard
           banner={product.imageUrl}

@@ -22,7 +22,7 @@ const ProductSlider = () => {
             <button className="slider-button left" onClick={() => handleScroll("left")}>
                 &#10094;
             </button>
-            <ProductGrid currentProducts={products} classname="slider" ref={sliderRef}/>
+            <ProductGrid currentProducts={products} gridName="slider" ref={sliderRef}/>
             <button className="slider-button right" onClick={() => handleScroll("right")}>
                 &#10095;
             </button>

@@ -68,7 +68,7 @@ const CatalogPage = () => {
                         handleNextPage={handleNextPage}
                         isNextDisabled={currentPage >= totalPages}
                     />
-                    <ProductGrid currentProducts={products} className='catalog' />
+                    <ProductGrid currentProducts={products} gridName='catalog' />
                     <PaginationControls
                         currentPage={currentPage}
                         handlePreviousPage={handlePreviousPage}
