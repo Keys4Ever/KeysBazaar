@@ -11,7 +11,7 @@ const usePagination = (itemsPerPage, currentItemsLength) => {
         setCurrentPage(prevPage => (prevPage > 1 ? prevPage - 1 : 1));
     };
 
-    const isNextDisabled = currentItemsLength < itemsPerPage;  
+    const isNextDisabled = currentItemsLength < itemsPerPage || currentItemsLength === 0;
     const isPreviousDisabled = currentPage <= 1;
 
     return {
