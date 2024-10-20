@@ -10,6 +10,7 @@
     left: 0;
     z-index: 1000;
     opacity: 0.95;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .nav-left {
@@ -31,10 +32,16 @@
     display: flex;
     align-items: center;
     background-color: #3b2424;
-    padding: 5px;
+    padding: 5px 10px;
     border-radius: 4px;
     border: 1px solid #805050;
     width: 60%;
+    max-width: 500px;
+    transition: all 0.3s ease;
+}
+
+.search-form:hover {
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
 }
 
 .search-icon, .clear-search {
@@ -50,7 +57,7 @@
 
 .search-form input[type="text"] {
     flex-grow: 1;
-    padding: 5px;
+    padding: 5px 10px;
     border: none;
     outline: none;
     background-color: transparent;
@@ -69,7 +76,6 @@
 .nav-right {
     display: flex;
     align-items: center;
-    position: relative;
     margin-right: 20px;
 }
 
@@ -83,6 +89,7 @@
     display: flex;
     align-items: center;
     padding: 5px 10px;
+    transition: color 0.2s ease;
 }
 
 .nav-right button:hover {
@@ -102,6 +109,7 @@
     padding: 10px;
     z-index: 1;
     width: 200px;
+    border-radius: 5px;
 }
 
 .dropdown:hover .dropdown-content {
@@ -110,31 +118,47 @@
 
 .dropdown-content a {
     color: #fff;
-    padding: 8px;
+    padding: 8px 12px;
     text-decoration: none;
     display: block;
     white-space: nowrap;
+    transition: background-color 0.2s ease;
 }
 
 .dropdown-content a:hover {
     background-color: #4c2b2b;
 }
 
-@media (max-width: 768px) {
-    .nav-middle {
-        width: 100%;
-        padding: 0 10px;
-    }
+.results-list {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    width: 100%;
+    background-color: #3F2A2A;
+    border-radius: 0 0 8px 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 999;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
 
-    .search-form {
-        width: 100%;
-    }
+.results-list::-webkit-scrollbar {
+    display: none;
+}
 
-    .nav-right button {
-        font-size: 14px;
-    }
+.results-list .search-result {
+    padding: 10px 15px;
+    cursor: pointer;
+    color: white;
+    font-size: 14px;
+    border-bottom: 1px solid #543636;
+    transition: background-color 0.2s ease;
+}
 
-    .dropdown-content {
-        width: auto;
-    }
+.results-list .search-result:last-child {
+    border-bottom: none;
+}
+
+.results-list .search-result:hover {
+    background-color: #543636;
 }

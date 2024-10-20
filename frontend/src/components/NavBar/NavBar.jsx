@@ -1,19 +1,14 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NavRight from "./NavRight/NavRight.jsx";
 import SearchBar from "@components/SearchBar/SearchBar.jsx";
+import SearchResultsList from "@components/SearchBar/SearchResultsList/SearchResultsList.jsx";
 import "./NavBar.css";
 import logo from "@assets/images/react.svg";
 
 const NavBar = () => {
+    const [searchResults, setSearchResults] = useState([]);
     const navigate = useNavigate();
-
-    const handleSearch = (searchTerm) => {
-        if (searchTerm) {
-            navigate(`/catalog?search=${searchTerm}`);
-        } else {
-            navigate("/catalog");
-        }
-    };
 
     return (
         <nav className="nav-bar">
@@ -26,7 +21,8 @@ const NavBar = () => {
             </div>
 
             <div className="nav-middle">
-                <SearchBar onSearch={handleSearch} />
+                <SearchBar setResults={setSearchResults} />
+                {searchResults.length > 0 && <SearchResultsList results={searchResults} />}
             </div>
             <NavRight />
         </nav>
