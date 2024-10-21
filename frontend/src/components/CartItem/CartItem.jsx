@@ -1,6 +1,7 @@
 import './CartItem.css';
 
-const CartItem = ({ name, price, quantity }) => {
+const CartItem = ({ name, price, quantity, handleMinus, handleAdd }) => {
+
     return (
         <li className="cart-item">
             <div className="product-info">
@@ -8,7 +9,9 @@ const CartItem = ({ name, price, quantity }) => {
                 <p className="quantity">Quantity: {quantity}</p>
             </div>
             <div className="price-section">
+                <button onClick={handleMinus}> - </button>
                 <p className="price">Price: ${price}</p>
+                <button onClick={handleAdd}> + </button>
             </div>
         </li>
     );
