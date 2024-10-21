@@ -1,6 +1,18 @@
-.catalog-grid {
+.filters {
     display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.filter-group {
+    margin-bottom: 10px;
+}
+
+.filter-group label {
+    margin-right: 10px;
+}
+
+.error {
+    color: red;
+    margin-top: 20px;
 }
