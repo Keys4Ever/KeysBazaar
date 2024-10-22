@@ -19,7 +19,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // CORS (All routes, change later)
-app.use(cors());
+const corsOptions = {
+    origin: "http://localhost:5173",
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    allowedHeaders: ["Authorization", "Content-Type"],
+    credentials: true
+  };
+  
+  app.use(cors(corsOptions));
+  
 
 app.use(authMiddleware);
 
@@ -28,8 +36,12 @@ app.use(checkUserInDatabase);
 app.use(express.json());
 
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "index.html"));
+    res.redirect('http://localhost:5173');
 });
+
+app.get("/callback", (req, res) => {
+    res.redirect('http://localhost:5173/');
+})
 
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
