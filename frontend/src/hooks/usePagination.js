@@ -16,6 +16,7 @@ const usePagination = (itemsPerPage, currentItemsLength) => {
 
     return {
         currentPage,
+        setCurrentPage,
         handleNextPage,
         handlePreviousPage,
         isNextDisabled,
