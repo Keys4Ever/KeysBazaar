@@ -18,16 +18,18 @@ const getAllProducts = async (req, res) => {
 
         if (isNaN(parsedLimit) || parsedLimit === 0 || parsedLimit === null) {
             parsedLimit = null;
-            warnings.push("Invalid limit provided. Defaulting to no limit.");
+            warnings.push("Invalid or no limit provided. Defaulting to no limit.");
         }
 
         if (isNaN(parsedOffset) || parsedOffset < 0) {
             parsedOffset = 0;
-            warnings.push("Invalid offset provided. Defaulting to no offset.");
+            warnings.push("Invalid or no offset provided. Defaulting to no offset.");
         }
 
+        // Build the filter query for products
         const { query: filterQuery, params: filterParams } = buildProductFilters({ search, minPrice, maxPrice, categories });
 
+        // Fetch the total count of products that match the filters
         const countQuery = `
             SELECT COUNT(DISTINCT p.id) AS total
             FROM products p
@@ -39,6 +41,7 @@ const getAllProducts = async (req, res) => {
         const { rows: countRows } = await client.execute(countQuery, filterParams);
         const totalCount = countRows[0]?.total || 0;
 
+        // Fetch the actual product data
         let productQuery = `
             SELECT p.*, GROUP_CONCAT(c.name) AS categories
             FROM products p
@@ -56,13 +59,16 @@ const getAllProducts = async (req, res) => {
 
         const { rows } = await client.execute(productQuery, productParams);
 
-        res.set('X-Total-Count', totalCount.toString());
+        // Calculate if there are more products
+        const more = parsedLimit !== null && parsedOffset + parsedLimit < totalCount;
 
-        if (warnings.length > 0) {
-            res.set('X-Offset-Warning', warnings.join('; '));
-        }
+        // Build the response
+        res.json({
+            more,
+            products: rows,
+            warnings
+        });
 
-        res.json(rows);
     } catch (error) {
         console.error("Error fetching products:", error);
         res.status(500).json({ error: "Failed to retrieve products" });
@@ -91,6 +97,8 @@ const buildProductFilters = ({ search, minPrice, maxPrice, categories }) => {
     if (Array.isArray(categories) && categories.length > 0) {
         query += ` AND c.name IN (${categories.map(() => '?').join(', ')})`;
         params.push(...categories);
+        query += ` GROUP BY p.id HAVING COUNT(DISTINCT c.id) = ?`;
+        params.push(categories.length);
     }
 
     return { query, params };
