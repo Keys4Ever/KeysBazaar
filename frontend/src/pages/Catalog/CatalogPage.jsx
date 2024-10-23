@@ -9,7 +9,7 @@ const CatalogPage = () => {
     const itemsPerPage = 20;
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]); // Store available categories
-    const [selectedCategories, setSelectedCategories] = useState([]); // Selected categories for filter
+    const [selectedCategories, setSelectedCategories] = useState([]); // Store selected category IDs
     const [minPrice, setMinPrice] = useState('');
     const [maxPrice, setMaxPrice] = useState('');
     const [loading, setLoading] = useState(true);
@@ -23,7 +23,7 @@ const CatalogPage = () => {
         handlePreviousPage,
         isNextDisabled,
         isPreviousDisabled,
-        setCurrentPage // This is new to allow resetting the page when search is triggered
+        setCurrentPage // This is used to reset the page when a new search is triggered
     } = usePagination(itemsPerPage, products.length);
 
     const offset = (currentPage - 1) * itemsPerPage;
@@ -51,7 +51,7 @@ const CatalogPage = () => {
                 search: searchTerm,
                 minPrice: minPrice || '',
                 maxPrice: maxPrice || '',
-                categories: selectedCategories.join(',') || '',
+                categories: selectedCategories.join(',') || '', // Now sending category IDs
                 limit: itemsPerPage,
                 offset: offset
             });
@@ -72,25 +72,21 @@ const CatalogPage = () => {
         }
     };
 
-    // Fetch products whenever the currentPage, minPrice, maxPrice, or selectedCategories change
-    useEffect(() => {
-        fetchProducts();
-    }, [currentPage, minPrice, maxPrice, selectedCategories]);
-
-    // Handle category selection
-    const handleCategoryChange = (e) => {
-        const { value, checked } = e.target;
-        if (checked) {
-            setSelectedCategories(prev => [...prev, value]);
-        } else {
-            setSelectedCategories(prev => prev.filter(category => category !== value));
-        }
-    };
-
-    // Handle search button click (reset page to 1 and refetch products)
+    // Fetch products only when the search button is clicked
     const handleSearch = () => {
         setCurrentPage(1);  // Reset to the first page when filters are applied
         fetchProducts();
+    };
+
+    // Handle category selection (store category IDs instead of names)
+    const handleCategoryChange = (e) => {
+        const { value, checked } = e.target;
+        const categoryId = parseInt(value, 10); // Store category ID instead of name
+        if (checked) {
+            setSelectedCategories(prev => [...prev, categoryId]);
+        } else {
+            setSelectedCategories(prev => prev.filter(id => id !== categoryId));
+        }
     };
 
     return (
@@ -121,7 +117,7 @@ const CatalogPage = () => {
                         <div key={category.id}>
                             <input
                                 type="checkbox"
-                                value={category.name}
+                                value={category.id} // Use category ID
                                 onChange={handleCategoryChange}
                                 id={`category-${category.id}`}
                             />
