@@ -7,7 +7,7 @@ const getAllProducts = async (req, res) => {
             search = '',
             minPrice = null,
             maxPrice = null,
-            categories = [],
+            categories = [],  // List of categories like [8, 9]
             limit = 0,
             offset = 0
         } = req.query;
@@ -33,8 +33,8 @@ const getAllProducts = async (req, res) => {
         const countQuery = `
             SELECT COUNT(DISTINCT p.id) AS total
             FROM products p
-            LEFT JOIN product_categories pc ON p.id = pc.product_id
-            LEFT JOIN categories c ON pc.category_id = c.id
+            JOIN product_categories pc ON p.id = pc.product_id
+            JOIN categories c ON pc.category_id = c.id
             ${filterQuery}
         `;
 
@@ -45,13 +45,15 @@ const getAllProducts = async (req, res) => {
         let productQuery = `
             SELECT p.*, GROUP_CONCAT(c.name) AS categories
             FROM products p
-            LEFT JOIN product_categories pc ON p.id = pc.product_id
-            LEFT JOIN categories c ON pc.category_id = c.id
+            JOIN product_categories pc ON p.id = pc.product_id
+            JOIN categories c ON pc.category_id = c.id
             ${filterQuery}
             GROUP BY p.id
+            HAVING COUNT(DISTINCT c.id) = ?  -- Ensure all categories match
         `;
 
-        const productParams = [...filterParams];
+        const productParams = [...filterParams, categories.length];  // Ensure count matches number of categories
+
         if (parsedLimit !== null) {
             productQuery += " LIMIT ? OFFSET ?";
             productParams.push(parsedLimit, parsedOffset);
@@ -95,10 +97,9 @@ const buildProductFilters = ({ search, minPrice, maxPrice, categories }) => {
     }
 
     if (Array.isArray(categories) && categories.length > 0) {
-        query += ` AND c.name IN (${categories.map(() => '?').join(', ')})`;
+        // Match products with ALL categories
+        query += ` AND c.id IN (${categories.map(() => '?').join(', ')})`;
         params.push(...categories);
-        query += ` GROUP BY p.id HAVING COUNT(DISTINCT c.id) = ?`;
-        params.push(categories.length);
     }
 
     return { query, params };
