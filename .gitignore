@@ -27,4 +27,5 @@ dist-ssr
 .env
 
 # Personal preference
+asd.js
 *.sql

@@ -28,18 +28,8 @@ const getAllProducts = async (req, res) => {
 
         const { query: filterQuery, params: filterParams } = buildProductFilters({ search, minPrice, maxPrice, categories });
 
-        const countQuery = `
-            SELECT COUNT(DISTINCT p.id) AS total
-            FROM products p
-            JOIN product_categories pc ON p.id = pc.product_id
-            JOIN categories c ON pc.category_id = c.id
-            ${filterQuery}
-        `;
-        const { rows: countRows } = await client.execute(countQuery, filterParams);
-        const totalCount = countRows[0]?.total || 0;
-
-        let productQuery = `
-            SELECT p.*, GROUP_CONCAT(c.name) AS categories
+        let productIdsQuery = `
+            SELECT p.id
             FROM products p
             JOIN product_categories pc ON p.id = pc.product_id
             JOIN categories c ON pc.category_id = c.id
@@ -47,25 +37,53 @@ const getAllProducts = async (req, res) => {
             GROUP BY p.id
         `;
 
-        const productParams = [...filterParams];
-
         if (categories.length > 0) {
-            productQuery += " HAVING COUNT(DISTINCT c.id) = ?";
-            productParams.push(categories.length);
+            productIdsQuery += " HAVING COUNT(DISTINCT c.id) = ?";
+            filterParams.push(categories.length);
         }
 
-        if (parsedLimit !== null) {
-            productQuery += " LIMIT ? OFFSET ?";
-            productParams.push(parsedLimit, parsedOffset);
+        const { rows: productIdsRows } = await client.execute(productIdsQuery, filterParams);
+        const productIds = productIdsRows.map(row => row.id);
+
+        if (productIds.length === 0) {
+            return res.json({ more: false, products: [], warnings });
         }
 
-        const { rows } = await client.execute(productQuery, productParams);
+        const productQuery = `
+            SELECT p.id, p.title, p.description, p.price, p.created_at, p.imageUrl, p.trailerUrl,
+                   c.name AS category_name, c.id AS category_id
+            FROM products p
+            JOIN product_categories pc ON p.id = pc.product_id
+            JOIN categories c ON pc.category_id = c.id
+            WHERE p.id IN (${productIds.map(() => '?').join(', ')})
+        `;
 
-        const more = parsedLimit !== null && parsedOffset + parsedLimit < totalCount;
+        const productParams = [...productIds];
+        const { rows: productRows } = await client.execute(productQuery, productParams);
+
+        const productsMap = {};
+        productRows.forEach(row => {
+            if (!productsMap[row.id]) {
+                productsMap[row.id] = {
+                    id: row.id,
+                    title: row.title,
+                    description: row.description,
+                    price: row.price,
+                    created_at: row.created_at,
+                    imageUrl: row.imageUrl,
+                    trailerUrl: row.trailerUrl,
+                    categories: []
+                };
+            }
+            productsMap[row.id].categories.push({ id: row.category_id, name: row.category_name });
+        });
+
+        const products = Object.values(productsMap);
+        const more = parsedLimit !== null && parsedOffset + parsedLimit < productIds.length;
 
         res.json({
             more,
-            products: rows,
+            products,
             warnings
         });
 
@@ -104,7 +122,14 @@ const buildProductFilters = ({ search, minPrice, maxPrice, categories }) => {
 
 // Controller to create a new product
 const createProduct = async (req, res) => {
-    const { title, description, price, categoryIds, imageUrl, trailerUrl } = req.body;
+    const { 
+        title, 
+        description, 
+        price, 
+        categoryIds, 
+        imageUrl, 
+        trailerUrl
+    } = req.body;
 
     if (!title || !description || isNaN(price)) {
         return res.status(400).json({ error: "Invalid input. Please provide title, description, and price." });
@@ -157,7 +182,15 @@ const deleteProduct = async (req, res) => {
 // Controller to update an existing product
 const updateProduct = async (req, res) => {
     const { productId } = req.params;
-    const { title, description, price, imageUrl, trailerUrl, categoryIds, conserveCategories = true } = req.body;
+    const {
+        title,
+        description,
+        price,
+        imageUrl,
+        trailerUrl,
+        categoryIds,
+        conserveCategories = true
+    } = req.body;
 
     if (!productId) {
         return res.status(400).json({ error: "Missing product ID" });
