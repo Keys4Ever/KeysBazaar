@@ -7,7 +7,7 @@ const getAllProducts = async (req, res) => {
             search = '',
             minPrice = null,
             maxPrice = null,
-            categories = [],  // List of categories like [8, 9]
+            categories = [],
             limit = 0,
             offset = 0
         } = req.query;
@@ -26,10 +26,8 @@ const getAllProducts = async (req, res) => {
             warnings.push("Invalid or no offset provided. Defaulting to no offset.");
         }
 
-        // Build the filter query for products
         const { query: filterQuery, params: filterParams } = buildProductFilters({ search, minPrice, maxPrice, categories });
 
-        // Fetch the total count of products that match the filters
         const countQuery = `
             SELECT COUNT(DISTINCT p.id) AS total
             FROM products p
@@ -37,11 +35,9 @@ const getAllProducts = async (req, res) => {
             JOIN categories c ON pc.category_id = c.id
             ${filterQuery}
         `;
-
         const { rows: countRows } = await client.execute(countQuery, filterParams);
         const totalCount = countRows[0]?.total || 0;
 
-        // Fetch the actual product data
         let productQuery = `
             SELECT p.*, GROUP_CONCAT(c.name) AS categories
             FROM products p
@@ -49,10 +45,14 @@ const getAllProducts = async (req, res) => {
             JOIN categories c ON pc.category_id = c.id
             ${filterQuery}
             GROUP BY p.id
-            HAVING COUNT(DISTINCT c.id) = ?  -- Ensure all categories match
         `;
 
-        const productParams = [...filterParams, categories.length];  // Ensure count matches number of categories
+        const productParams = [...filterParams];
+
+        if (categories.length > 0) {
+            productQuery += " HAVING COUNT(DISTINCT c.id) = ?";
+            productParams.push(categories.length);
+        }
 
         if (parsedLimit !== null) {
             productQuery += " LIMIT ? OFFSET ?";
@@ -61,10 +61,8 @@ const getAllProducts = async (req, res) => {
 
         const { rows } = await client.execute(productQuery, productParams);
 
-        // Calculate if there are more products
         const more = parsedLimit !== null && parsedOffset + parsedLimit < totalCount;
 
-        // Build the response
         res.json({
             more,
             products: rows,
@@ -73,7 +71,7 @@ const getAllProducts = async (req, res) => {
 
     } catch (error) {
         console.error("Error fetching products:", error);
-        res.status(500).json({ error: "Failed to retrieve products" });
+        res.status(500).json({ error: "Failed to retrieve products." });
     }
 };
 
@@ -97,7 +95,6 @@ const buildProductFilters = ({ search, minPrice, maxPrice, categories }) => {
     }
 
     if (Array.isArray(categories) && categories.length > 0) {
-        // Match products with ALL categories
         query += ` AND c.id IN (${categories.map(() => '?').join(', ')})`;
         params.push(...categories);
     }
