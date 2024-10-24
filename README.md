@@ -19,3 +19,8 @@ KeysBazaar simulates the core functionalities of a typical e-commerce platform, 
   - **HTML, CSS, JavaScript**: For crafting the structure, design, and interactivity of the platform.
 - **Backend**: Node.js + Express.js for server-side logic (future implementation).
   - Currently designed to handle API requests, user management, and product data once integrated.
+
+## To-Do List
+
+- [ ] Finish catalog - Kosmo
+- [ ] Fix getAllProducts (now the limit and offset dont work, I think I deleted it by accident)
