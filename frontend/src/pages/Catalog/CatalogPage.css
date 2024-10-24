@@ -1,18 +1,20 @@
+.catalog-page {
+    padding: 20px;
+}
+
+.search-bar,
 .filters {
-    display: flex;
-    flex-direction: column;
     margin-bottom: 20px;
 }
 
-.filter-group {
-    margin-bottom: 10px;
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
 }
 
-.filter-group label {
-    margin-right: 10px;
-}
-
-.error {
-    color: red;
+.pagination {
+    display: flex;
+    justify-content: center;
     margin-top: 20px;
 }

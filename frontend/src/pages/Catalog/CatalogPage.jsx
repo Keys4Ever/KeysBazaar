@@ -1,153 +1,79 @@
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import PaginationControls from '@components/PaginationControls/PaginationControls';
-import ProductGrid from '@components/ProductGrid/ProductGrid';
-import usePagination from '@hooks/usePagination';
-import './CatalogPage.css';
+import { useState, useEffect } from "react";
+import ProductCard from "@components/ProductCard/ProductCard";
+import SearchBar from "./SearchBar/SearchBar.jsx";
+import Filters from "./Filters/Filters.jsx";
+import Pagination from "./Pagination/Pagination.jsx";
+import useProducts from "./hooks/useProduts.jsx";
+import useCategories from "./hooks/useCategories.jsx";
 
 const CatalogPage = () => {
-    const itemsPerPage = 20;
-    const [products, setProducts] = useState([]);
-    const [categories, setCategories] = useState([]); // Store available categories
-    const [selectedCategories, setSelectedCategories] = useState([]); // Selected categories for filter
-    const [minPrice, setMinPrice] = useState('');
-    const [maxPrice, setMaxPrice] = useState('');
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [searchParams] = useSearchParams();
-    const searchTerm = searchParams.get('search') || '';
+    const [searchQuery, setSearchQuery] = useState("");
+    const [minPrice, setMinPrice] = useState(null);
+    const [maxPrice, setMaxPrice] = useState(null);
+    const [selectedCategories, setSelectedCategories] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [limit] = useState(10); // Products per page
 
-    const {
-        currentPage,
-        handleNextPage,
-        handlePreviousPage,
-        isNextDisabled,
-        isPreviousDisabled,
-        setCurrentPage // This is new to allow resetting the page when search is triggered
-    } = usePagination(itemsPerPage, products.length);
+    const { products, more, fetchProducts, loading } = useProducts();
+    const { categories } = useCategories();
 
-    const offset = (currentPage - 1) * itemsPerPage;
-
-    // Fetch categories on component mount
     useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                const response = await fetch('http://localhost:3000/api/categories');
-                const data = await response.json();
-                setCategories(data);
-            } catch (error) {
-                console.error("Failed to fetch categories", error);
-            }
-        };
-        fetchCategories();
-    }, []);
+        console.log("Fetching products for page:", currentPage); // Debug log for pagination
+        fetchProducts({
+            search: searchQuery,
+            minPrice,
+            maxPrice,
+            categories: selectedCategories,
+            limit,
+            offset: (currentPage - 1) * limit, // Offset calculation
+        });
+    }, [searchQuery, minPrice, maxPrice, selectedCategories, currentPage, limit, fetchProducts]);
 
-    // Function to handle search with filters
-    const fetchProducts = async () => {
-        setLoading(true);
-        setError(null); // Reset error on new fetch
-        try {
-            const queryParams = new URLSearchParams({
-                search: searchTerm,
-                minPrice: minPrice || '',
-                maxPrice: maxPrice || '',
-                categories: selectedCategories.join(',') || '',
-                limit: itemsPerPage,
-                offset: offset
-            });
-
-            const response = await fetch(`http://localhost:3000/api/products?${queryParams.toString()}`);
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch products');
-            }
-
-            const data = await response.json();
-            setProducts(data);
-        } catch (error) {
-            console.error("Failed to fetch products", error);
-            setError('There was an issue fetching products. Please try again later.');
-        } finally {
-            setLoading(false);
-        }
+    const handleSearch = (query) => {
+        setSearchQuery(query);
+        setCurrentPage(1); // Reset to the first page on search
     };
 
-    // Fetch products whenever the currentPage, minPrice, maxPrice, or selectedCategories change
-    useEffect(() => {
-        fetchProducts();
-    }, [currentPage, minPrice, maxPrice, selectedCategories]);
-
-    // Handle category selection
-    const handleCategoryChange = (e) => {
-        const { value, checked } = e.target;
-        if (checked) {
-            setSelectedCategories(prev => [...prev, value]);
-        } else {
-            setSelectedCategories(prev => prev.filter(category => category !== value));
-        }
+    const handleFilterChange = ({ minPrice, maxPrice, categories }) => {
+        setMinPrice(minPrice);
+        setMaxPrice(maxPrice);
+        setSelectedCategories(categories);
+        setCurrentPage(1); // Reset to the first page on filter change
     };
 
-    // Handle search button click (reset page to 1 and refetch products)
-    const handleSearch = () => {
-        setCurrentPage(1);  // Reset to the first page when filters are applied
-        fetchProducts();
+    const handlePageChange = (page) => {
+        if (page > 0) {
+            setCurrentPage(page); // Update the current page
+        }
     };
 
     return (
-        <div>
-            <h1>Catalog</h1>
-            <div className="filters">
-                <div className="filter-group">
-                    <label htmlFor="minPrice">Min Price:</label>
-                    <input
-                        type="number"
-                        id="minPrice"
-                        value={minPrice}
-                        onChange={(e) => setMinPrice(e.target.value)}
-                    />
-                </div>
-                <div className="filter-group">
-                    <label htmlFor="maxPrice">Max Price:</label>
-                    <input
-                        type="number"
-                        id="maxPrice"
-                        value={maxPrice}
-                        onChange={(e) => setMaxPrice(e.target.value)}
-                    />
-                </div>
-                <div className="filter-group">
-                    <label>Categories:</label>
-                    {categories.map((category) => (
-                        <div key={category.id}>
-                            <input
-                                type="checkbox"
-                                value={category.name}
-                                onChange={handleCategoryChange}
-                                id={`category-${category.id}`}
-                            />
-                            <label htmlFor={`category-${category.id}`}>{category.name}</label>
-                        </div>
-                    ))}
-                </div>
-                <button onClick={handleSearch}>Search</button>
-            </div>
+        <div className="catalog-page">
+            <SearchBar onSearch={handleSearch} />
+            <Filters categories={categories} onFilterChange={handleFilterChange} />
+
             {loading ? (
-                <p>Loading...</p>
-            ) : products.length === 0 ? (
-                <p>No products found</p>
+                <div>Loading...</div> // Display loading feedback
             ) : (
-                <>
-                    <ProductGrid currentProducts={products} gridName='catalog' />
-                    <PaginationControls
-                        currentPage={currentPage}
-                        handlePreviousPage={handlePreviousPage}
-                        handleNextPage={handleNextPage}
-                        isNextDisabled={isNextDisabled}
-                        isPreviousDisabled={isPreviousDisabled}
-                    />
-                </>
+                <div className="product-grid">
+                    {products.length > 0 ? (
+                        products.map(product => (
+                            <ProductCard
+                                key={product.id}
+                                banner={product.imageUrl}
+                                name={product.title}
+                                price={product.price}
+                                productId={product.id}
+                                trailer={product.trailerUrl}
+                            />
+                        ))
+                    ) : (
+                        <div>No products found</div> // No products message
+                    )}
+                </div>
             )}
-            {error && <p className="error">{error}</p>}
+
+            <Pagination currentPage={currentPage} hasNextPage={more} onPageChange={handlePageChange} />
         </div>
     );
 };
