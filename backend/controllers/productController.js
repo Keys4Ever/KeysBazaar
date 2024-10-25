@@ -16,20 +16,22 @@ const getAllProducts = async (req, res) => {
         let parsedOffset = parseInt(offset, 10);
         let warnings = [];
 
-        if (isNaN(parsedLimit) || parsedLimit === 0 || parsedLimit === null || parsedLimit < 0) {
+        if (isNaN(parsedLimit) || parsedLimit <= 0) {
             parsedLimit = null;
             warnings.push("Invalid or no limit provided. Defaulting to no limit.");
         }
 
-        if (isNaN(parsedOffset) || parsedOffset === 0 || parsedOffset === null || parsedOffset < 0) {
+        if (isNaN(parsedOffset) || parsedOffset < 0) {
             parsedOffset = 0;
             warnings.push("Invalid or no offset provided. Defaulting to no offset.");
         }
 
-        const { query: filterQuery, params: filterParams } = buildProductFilters({ search, minPrice, maxPrice, categories });
+        const { query: filterQuery, params: filterParams } = buildProductFilters({
+            search, minPrice, maxPrice, categories
+        });
 
         let productIdsQuery = `
-            SELECT p.id
+            SELECT p.id, COUNT(*) OVER() as found_products_number
             FROM products p
             JOIN product_categories pc ON p.id = pc.product_id
             JOIN categories c ON pc.category_id = c.id
@@ -49,6 +51,7 @@ const getAllProducts = async (req, res) => {
 
         const { rows: productIdsRows } = await client.execute(productIdsQuery, filterParams);
         const productIds = productIdsRows.map(row => row.id);
+        const totalResults = productIdsRows.length > 0 ? productIdsRows[0].found_products_number : 0;
 
         if (productIds.length === 0) {
             return res.json({ more: false, products: [], warnings });
@@ -85,7 +88,7 @@ const getAllProducts = async (req, res) => {
         });
 
         const products = Object.values(productsMap);
-        const more = parsedLimit !== null && parsedOffset + parsedLimit < productIds.length;
+        const more = parsedLimit !== null && parsedOffset + parsedLimit < totalResults;
 
         res.json({
             more,
