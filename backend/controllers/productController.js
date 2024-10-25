@@ -292,7 +292,7 @@ const getOneProduct = async (req, res) => {
 
         const { rows: categoryRows } = await client.execute({
             sql: `
-                SELECT c.name
+                SELECT c.id AS category_id, c.name AS category_name
                 FROM categories c
                 JOIN product_categories pc ON c.id = pc.category_id
                 WHERE pc.product_id = ?
@@ -301,7 +301,10 @@ const getOneProduct = async (req, res) => {
         });
 
         const product = productRows[0];
-        product.categories = categoryRows.map(c => c.name);
+        product.categories = categoryRows.map(c => ({
+            id: c.category_id,
+            name: c.category_name
+        }));
 
         res.status(200).json(product);
     } catch (e) {
