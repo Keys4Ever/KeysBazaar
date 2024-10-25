@@ -42,6 +42,11 @@ const getAllProducts = async (req, res) => {
             filterParams.push(categories.length);
         }
 
+        if (parsedLimit !== null) {
+            productIdsQuery += " LIMIT ? OFFSET ?";
+            filterParams.push(parsedLimit, parsedOffset);
+        }
+
         const { rows: productIdsRows } = await client.execute(productIdsQuery, filterParams);
         const productIds = productIdsRows.map(row => row.id);
 
@@ -49,13 +54,14 @@ const getAllProducts = async (req, res) => {
             return res.json({ more: false, products: [], warnings });
         }
 
-        const productQuery = `
+        let productQuery = `
             SELECT p.id, p.title, p.description, p.price, p.created_at, p.imageUrl, p.trailerUrl,
                    c.name AS category_name, c.id AS category_id
             FROM products p
             JOIN product_categories pc ON p.id = pc.product_id
             JOIN categories c ON pc.category_id = c.id
             WHERE p.id IN (${productIds.map(() => '?').join(', ')})
+            GROUP BY p.id, c.id
         `;
 
         const productParams = [...productIds];
