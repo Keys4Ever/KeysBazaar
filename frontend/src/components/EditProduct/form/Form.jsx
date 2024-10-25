@@ -7,7 +7,7 @@ const Form = ({ populateForm = false, id }) => {
         trailerUrl: '',
         price: '',
         description: '',
-        categoryIds: [] 
+        categoryIds: []
     });
 
     const [originalProduct, setOriginalProduct] = useState({
@@ -18,7 +18,7 @@ const Form = ({ populateForm = false, id }) => {
         description: '',
         categoryIds: []
     });
-    
+
     const [allCategories, setAllCategories] = useState([]);
 
     useEffect(() => {
@@ -36,19 +36,19 @@ const Form = ({ populateForm = false, id }) => {
                     .then(data => {
                         setProduct({
                             title: data.title,
-                            imageUrl: data.imageUrl,
-                            trailerUrl: data.trailerUrl,
+                            imageUrl: data.imageUrl || '',
+                            trailerUrl: data.trailerUrl || '',
                             price: data.price,
                             description: data.description,
-                            categoryIds: data.categoryIds
+                            categoryIds: data.categories.map(cat => cat.id)
                         });
                         setOriginalProduct({
                             title: data.title,
-                            imageUrl: data.imageUrl,
-                            trailerUrl: data.trailerUrl,
+                            imageUrl: data.imageUrl || '',
+                            trailerUrl: data.trailerUrl || '',
                             price: data.price,
                             description: data.description,
-                            categoryIds: data.categoryIds 
+                            categoryIds: data.categories.map(cat => cat.id)
                         });
                     })
                     .catch(error => console.error("Error fetching product:", error));
