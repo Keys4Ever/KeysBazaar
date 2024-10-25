@@ -16,12 +16,12 @@ const getAllProducts = async (req, res) => {
         let parsedOffset = parseInt(offset, 10);
         let warnings = [];
 
-        if (isNaN(parsedLimit) || parsedLimit === 0 || parsedLimit === null) {
+        if (isNaN(parsedLimit) || parsedLimit === 0 || parsedLimit === null || parsedLimit < 0) {
             parsedLimit = null;
             warnings.push("Invalid or no limit provided. Defaulting to no limit.");
         }
 
-        if (isNaN(parsedOffset) || parsedOffset < 0) {
+        if (isNaN(parsedOffset) || parsedOffset === 0 || parsedOffset === null || parsedOffset < 0) {
             parsedOffset = 0;
             warnings.push("Invalid or no offset provided. Defaulting to no offset.");
         }
