@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AccountOverview from "@components/AccountOverview/AccountOverview.jsx"; 
 import AccountSidebar from "@components/AccountSidebar/AccountSidebar.jsx";
 import OrderHistory from "@components/OrderHistory/OrderHistory.jsx";
@@ -9,11 +9,22 @@ import AddProduct from "@components/AddProduct/AddProduct.jsx";
 import EditProduct from "@components/EditProduct/EditProduct.jsx";
 import DeleteProduct from "@components/DeleteProduct/DeleteProduct.jsx";
 import "./AccountPage.css";
+import { useAuth } from "../../context/authContext";
 
 const AccountPage = () => {
     const [activeTab, setActiveTab] = useState("overview");
-    //Here should be data base logic
-    const isAdmin = true;
+    const [isAdmin, setIsAdmin] = useState(false);
+    const { auth } = useAuth();
+    
+    useEffect(()=>{
+        const userId = auth.user.sub.split('|')[1];
+        fetch(`http://localhost:3000/api/users/)${userId}`)
+            .then((response) => response.json())
+            .then((data) => setIsAdmin(data.role == "admin" ? true : false))
+            .catch((error) =>
+                console.error("Error fetching the most popular product:", error)
+            );
+    },[])
 
     const renderAdminTabContent = () => {
         switch(activeTab) {
