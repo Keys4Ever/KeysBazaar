@@ -1,7 +1,6 @@
-import React from 'react';
 import ProductCard from "@components/ProductCard/ProductCard";
 import "./ProductGrid.css"
-const ProductGrid = ({ currentProducts, gridName = 'undefined', ref }) => {
+const ProductGrid = ({ currentProducts, gridName = 'undefined', ref}) => {
   return (
     <div className={`${gridName}-grid`} ref={ref}>
       {currentProducts.map((product) => (
