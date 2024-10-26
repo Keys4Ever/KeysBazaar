@@ -2,16 +2,19 @@
     padding: 20px;
 }
 
-.search-bar, .filters, .pagination {
+.search-bar,
+.filters {
     margin-bottom: 20px;
 }
 
 .product-grid {
     display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 }
 
-.pagination button {
-    margin: 0 5px;
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
 }
