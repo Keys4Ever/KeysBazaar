@@ -9,13 +9,11 @@ function App() {
     const  [products, setProducts] = useState([]);
 
     useEffect(()=>{
-        try {
-            const result = fetch('http://localhost:3000/api/products/most-popular')
+
+            fetch('http://localhost:3000/api/products/most-popular')
                             .then(response => response.json())
                             .then(data => setProducts(data))
-        } catch (error) {
-            console.error(error);
-        }
+                            .catch(error => console.error(error));
     })
 
     return (
