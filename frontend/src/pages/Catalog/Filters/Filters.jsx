@@ -1,52 +1,53 @@
-import { useState } from "react";
+import React from 'react';
 
-const Filters = ({ categories, onFilterChange }) => {
-    const [minPrice, setMinPrice] = useState("");
-    const [maxPrice, setMaxPrice] = useState("");
-    const [selectedCategories, setSelectedCategories] = useState([]);
-
+const Filters = ({
+    categories,
+    selectedCategories,
+    setSelectedCategories,
+    minPrice,
+    setMinPrice,
+    maxPrice,
+    setMaxPrice,
+    onFilter,
+}) => {
     const handleCategoryChange = (categoryId) => {
-        setSelectedCategories((prevSelected) =>
-            prevSelected.includes(categoryId)
-                ? prevSelected.filter((id) => id !== categoryId)
-                : [...prevSelected, categoryId]
+        setSelectedCategories(prev =>
+            prev.includes(categoryId)
+                ? prev.filter(id => id !== categoryId)
+                : [...prev, categoryId]
         );
-    };
-
-    const applyFilters = () => {
-        onFilterChange({ minPrice: parseFloat(minPrice), maxPrice: parseFloat(maxPrice), categories: selectedCategories });
     };
 
     return (
         <div className="filters">
             <div className="price-filter">
+                <label>Min Price:</label>
                 <input
                     type="number"
-                    placeholder="Min Price"
-                    value={minPrice}
-                    onChange={(e) => setMinPrice(e.target.value)}
+                    value={minPrice || ''}
+                    onChange={(e) => setMinPrice(e.target.value ? Number(e.target.value) : null)}
                 />
+                <label>Max Price:</label>
                 <input
                     type="number"
-                    placeholder="Max Price"
-                    value={maxPrice}
-                    onChange={(e) => setMaxPrice(e.target.value)}
+                    value={maxPrice || ''}
+                    onChange={(e) => setMaxPrice(e.target.value ? Number(e.target.value) : null)}
                 />
             </div>
-
             <div className="category-filter">
-                {categories.map((category) => (
-                    <label key={category.id}>
+                <label>Categories:</label>
+                {categories.map(category => (
+                    <div key={category.id}>
                         <input
                             type="checkbox"
                             checked={selectedCategories.includes(category.id)}
                             onChange={() => handleCategoryChange(category.id)}
                         />
-                        {category.name}
-                    </label>
+                        <label>{category.name}</label>
+                    </div>
                 ))}
             </div>
-            <button onClick={applyFilters}>Apply Filters</button>
+            <button onClick={onFilter}>Apply Filters</button>
         </div>
     );
 };
