@@ -12,7 +12,12 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-body {
+html, body {
+  height: 100%;
   margin: 0;
   padding: 0;
+}
+
+main {
+  min-height: 100vh;
 }

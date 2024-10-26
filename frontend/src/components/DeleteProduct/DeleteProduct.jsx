@@ -16,7 +16,7 @@ const DeleteProduct = () => {
                 return res.json();
             })
             .then(data => {
-                setProducts(data);
+                setProducts(data.products);
                 setLoading(false);
             })
             .catch(error => {
