@@ -1,44 +1,78 @@
-import React, { useState, useMemo } from 'react';
-import mockupCart from '@utils/mockupCart.json';
-import mockup from '@utils/mockup.json';
+import React, { useState, useEffect } from 'react';
 import CartItem from '@components/CartItem/CartItem.jsx';
+import { useAuth } from '@context/authContext';
+import { getCartItems, addToCart, removeFromCart } from '@services/cartServices.js';
 import './CartPage.css';
 
 const CartPage = () => {
-    //userId, here should be auth0 logic
-    const userId = "123";
+    const { auth } = useAuth();
 
-    const [cart, setCart] = useState(() => {
-        //retrieve cart, here should be backend shit
-        const userCart = mockupCart.find(cart => cart.user_id === userId);
-        if (!userCart) {
-            return { productsInCart: [], totalPrice: 0 };
+    if (!auth.authenticated) {
+        window.location.href = 'http://localhost:3000/login';
+    }
+
+    const userId = auth.user.sub.split('|')[1];
+    const [cart, setCart] = useState({ productsInCart: [], totalPrice: 0 });
+
+    useEffect(() => {
+        const fetchCart = async () => {
+            try {
+                const items = await getCartItems(userId);
+                let total = 0;
+                const products = [];
+
+                //maybe this works, idk
+                for (const item of items) {
+                    const response = await fetch(`http://localhost:3000/api/products/${item.product_id}`);
+                    const productData = await response.json();
+
+                    const product = {
+                        productId: item.product_id,
+                        name: productData.title,
+                        price: productData.price,
+                        quantity: item.quantity,
+                    };
+
+                    total += product.price * product.quantity;
+                    products.push(product);
+                }
+
+                setCart({ productsInCart: products, totalPrice: total });
+            } catch (error) {
+                console.error("Failed to load cart items:", error);
+            }
+        };
+
+        fetchCart();
+    }, [userId]);
+
+    const handleAdd = async (productId) => {
+        try {
+            await addToCart(userId, productId, 1);
+            updateCartState(productId, 1);
+        } catch (error) {
+            console.error("Failed to add item to cart:", error);
         }
+    };
 
-        let total = 0;
-        //retrieve products, i think this can be better
-        const products = userCart.products.map(({ product_id, quantity }) => {
-            const productData = mockup.find(product => product.productId === product_id);
-            total += productData.price * quantity;
-            return { ...productData, quantity };
-        });
+    const handleMinus = async (productId) => {
+        try {
+            await removeFromCart(userId, productId);
+            updateCartState(productId, -1);
+        } catch (error) {
+            console.error("Failed to remove item from cart:", error);
+        }
+    };
 
-        return { productsInCart: products, totalPrice: total };
-    });
-
-    const { productsInCart, totalPrice } = cart;
-
-    // Handle adding a product
-    const handleAdd = (productId) => {
+    const updateCartState = (productId, change) => {
         setCart(prevCart => {
             const updatedProducts = prevCart.productsInCart.map(product => {
                 if (product.productId === productId) {
-                    return { ...product, quantity: product.quantity + 1 };
+                    return { ...product, quantity: product.quantity + change };
                 }
                 return product;
-            });
+            }).filter(product => product.quantity > 0);
 
-            // Recalculate total price
             const updatedTotalPrice = updatedProducts.reduce(
                 (acc, product) => acc + product.price * product.quantity,
                 0
@@ -48,29 +82,7 @@ const CartPage = () => {
         });
     };
 
-    // Handle reducing a product's quantity
-    const handleMinus = (productId) => {
-        setCart(prevCart => {
-            const updatedProducts = prevCart.productsInCart
-                .map(product => {
-                    if (product.productId === productId) {
-                        return { ...product, quantity: Math.max(product.quantity - 1, 0) };
-                    }
-                    return product;
-                })
-                .filter(product => product.quantity > 0); // Remove items with quantity 0
-
-            // Recalculate total price
-            const updatedTotalPrice = updatedProducts.reduce(
-                (acc, product) => acc + product.price * product.quantity,
-                0
-            );
-
-            return { productsInCart: updatedProducts, totalPrice: updatedTotalPrice };
-        });
-    };
-
-    if (productsInCart.length === 0) {
+    if (cart.productsInCart.length === 0) {
         return (
             <main className="cart-page">
                 <h1>Cart page</h1>
@@ -83,10 +95,10 @@ const CartPage = () => {
         <main className="cart-page">
             <h1>Cart page</h1>
             <ul className="cart-products">
-                {productsInCart.map((product, index) => (
+                {cart.productsInCart.map((product, index) => (
                     <CartItem
                         key={index}
-                        name={product.name}
+                        name={product.title}
                         price={product.price}
                         quantity={product.quantity}
                         handleMinus={() => handleMinus(product.productId)}
@@ -95,7 +107,7 @@ const CartPage = () => {
                 ))}
             </ul>
             <div className="total-price">
-                <h3>Total Price: ${totalPrice.toFixed(2)}</h3>
+                <h3>Total Price: ${cart.totalPrice.toFixed(2)}</h3>
             </div>
         </main>
     );
