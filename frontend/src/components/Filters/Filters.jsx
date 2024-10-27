@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 const Filters = ({ categories, onFilterChange }) => {
+    const [searchQuery, setSearchQuery] = useState("");
     const [minPrice, setMinPrice] = useState("");
     const [maxPrice, setMaxPrice] = useState("");
     const [selectedCategories, setSelectedCategories] = useState([]);
@@ -14,11 +15,25 @@ const Filters = ({ categories, onFilterChange }) => {
     };
 
     const applyFilters = () => {
-        onFilterChange({ minPrice: parseFloat(minPrice), maxPrice: parseFloat(maxPrice), categories: selectedCategories });
+        onFilterChange({
+            searchQuery,
+            minPrice: parseFloat(minPrice),
+            maxPrice: parseFloat(maxPrice),
+            categories: selectedCategories,
+        });
     };
 
     return (
         <div className="filters">
+            <div className="search-bar">
+                <input
+                    type="text"
+                    placeholder="Search for products..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+            </div>
+
             <div className="price-filter">
                 <input
                     type="number"
@@ -46,7 +61,8 @@ const Filters = ({ categories, onFilterChange }) => {
                     </label>
                 ))}
             </div>
-            <button onClick={applyFilters}>Apply Filters</button>
+
+            <button onClick={applyFilters}>Apply</button>
         </div>
     );
 };

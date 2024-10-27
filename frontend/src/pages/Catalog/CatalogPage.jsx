@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import ProductCard from "@components/ProductCard/ProductCard";
-import SearchBar from "./SearchBar/SearchBar.jsx";
-import Filters from "./Filters/Filters.jsx";
-import Pagination from "./Pagination/Pagination.jsx";
-import useProducts from "./hooks/useProducts.js";
-import useCategories from "./hooks/useCategories.js";
+import Filters from "../../components/Filters/Filters.jsx";
+import Pagination from "../../components/PaginationControls/Pagination.jsx";
+import useProducts from "../../hooks/useProducts.js";
+import useCategories from "../../hooks/useCategories.js";
 
 const CatalogPage = () => {
     const [searchQuery, setSearchQuery] = useState("");
@@ -28,12 +27,8 @@ const CatalogPage = () => {
         });
     }, [searchQuery, minPrice, maxPrice, selectedCategories, currentPage, limit, fetchProducts]);
 
-    const handleSearch = (query) => {
-        setSearchQuery(query);
-        setCurrentPage(1);
-    };
-
-    const handleFilterChange = ({ minPrice, maxPrice, categories }) => {
+    const handleFilterChange = ({ searchQuery, minPrice, maxPrice, categories }) => {
+        setSearchQuery(searchQuery);
         setMinPrice(minPrice);
         setMaxPrice(maxPrice);
         setSelectedCategories(categories);
@@ -48,8 +43,10 @@ const CatalogPage = () => {
 
     return (
         <div className="catalog-page">
-            <SearchBar onSearch={handleSearch} />
-            <Filters categories={categories} onFilterChange={handleFilterChange} />
+            <Filters
+                categories={categories}
+                onFilterChange={handleFilterChange}
+            />
 
             {loading ? (
                 <div>Loading...</div>
@@ -72,7 +69,11 @@ const CatalogPage = () => {
                 </div>
             )}
 
-            <Pagination currentPage={currentPage} hasNextPage={more} onPageChange={handlePageChange} />
+            <Pagination
+                currentPage={currentPage}
+                hasNextPage={more}
+                onPageChange={handlePageChange}
+            />
         </div>
     );
 };
