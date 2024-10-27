@@ -344,4 +344,27 @@ const getMostPopularProduct = async (req, res) => {
     }
 };
 
-export { getAllProducts, createProduct, deleteProduct, updateProduct, getOneProduct, getMostPopularProduct };
+// Controller to get all uncategorized products
+const getUncategorizedProducts = async (req, res) => {
+    try {
+        const { rows } = await client.execute(`
+            SELECT p.id, p.title
+            FROM products AS p
+            WHERE p.id NOT IN (
+                SELECT DISTINCT pc.product_id
+                FROM product_categories AS pc
+            );
+        `);
+
+        if (rows.length < 1) {
+            return res.status(404).json({ message: "No uncategorized products found" });
+        }
+
+        res.status(200).json({ products: rows });
+    } catch (error) {
+        console.error("Error fetching uncategorized products:", error);
+        res.status(500).json({ error: "Failed to retrieve uncategorized products" });
+    }
+};
+
+export { getAllProducts, createProduct, deleteProduct, updateProduct, getOneProduct, getMostPopularProduct, getUncategorizedProducts };

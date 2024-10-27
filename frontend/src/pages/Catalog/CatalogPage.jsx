@@ -12,38 +12,37 @@ const CatalogPage = () => {
     const [maxPrice, setMaxPrice] = useState(null);
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
-    const [limit] = useState(10); // Products per page
+    const limit = 10;
 
     const { products, more, fetchProducts, loading } = useProducts();
     const { categories } = useCategories();
 
     useEffect(() => {
-        console.log("Fetching products for page:", currentPage); // Debug log for pagination
         fetchProducts({
             search: searchQuery,
             minPrice,
             maxPrice,
             categories: selectedCategories,
             limit,
-            offset: (currentPage - 1) * limit, // Offset calculation
+            offset: (currentPage - 1) * limit
         });
     }, [searchQuery, minPrice, maxPrice, selectedCategories, currentPage, limit, fetchProducts]);
 
     const handleSearch = (query) => {
         setSearchQuery(query);
-        setCurrentPage(1); // Reset to the first page on search
+        setCurrentPage(1);
     };
 
     const handleFilterChange = ({ minPrice, maxPrice, categories }) => {
         setMinPrice(minPrice);
         setMaxPrice(maxPrice);
         setSelectedCategories(categories);
-        setCurrentPage(1); // Reset to the first page on filter change
+        setCurrentPage(1);
     };
 
     const handlePageChange = (page) => {
-        if (page > 0) {
-            setCurrentPage(page); // Update the current page
+        if (page > 0 && (page < currentPage || more)) {
+            setCurrentPage(page);
         }
     };
 
@@ -53,7 +52,7 @@ const CatalogPage = () => {
             <Filters categories={categories} onFilterChange={handleFilterChange} />
 
             {loading ? (
-                <div>Loading...</div> // Display loading feedback
+                <div>Loading...</div>
             ) : (
                 <div className="product-grid">
                     {products.length > 0 ? (
@@ -68,7 +67,7 @@ const CatalogPage = () => {
                             />
                         ))
                     ) : (
-                        <div>No products found</div> // No products message
+                        <div>No products found</div>
                     )}
                 </div>
             )}
