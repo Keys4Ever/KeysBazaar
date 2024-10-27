@@ -1,11 +1,11 @@
 import client from "../config/turso.js";
 
-async function getProductFromCart(userId, productId){
-    const { rows } = await client.execute({
+async function getProductFromCart(userId, productId) {
+    const result = await client.execute({
         sql: "SELECT * FROM carts WHERE user_id = ? AND product_id = ?",
         args: [userId, productId],
     });
-    return rows[0];
+    return result;
 }
 
 // Fetch all cart items for a specific user
@@ -28,9 +28,9 @@ const addToCart = async (req, res) => {
     const { userId, productId, quantity } = req.body;
     
     try {
-        const {rows} = await getProductFromCart(userId, productId);
+        const result = await getProductFromCart(userId, productId);
 
-        if (rows.length > 0) {
+        if (result && result.rows.length > 0) {
             // Update quantity if item exists
             await client.execute({
                 sql: "UPDATE carts SET quantity = quantity + ? WHERE user_id = ? AND product_id = ?",
@@ -46,6 +46,7 @@ const addToCart = async (req, res) => {
             res.status(201).json({ message: "Item added to cart" });
         }
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: "Failed to add item to cart" });
     }
 };
@@ -94,7 +95,7 @@ const removeFromCart = async (req, res) => {
 */
 const replaceCart = async (req, res) => {
     const { userId, items } = req.body;
-    const transaction = client.transaction("write");
+    const transaction = await client.transaction("write");
 
     try {
         // Clear current cart items
@@ -115,7 +116,8 @@ const replaceCart = async (req, res) => {
 
         res.status(200).json({ message: "Cart updated successfully" });
     } catch (error) {
-        await transaction.rollback()
+        console.error(error);
+        await transaction.rollback();
         res.status(500).json({ error: "Failed to update cart" });
     }
 };
