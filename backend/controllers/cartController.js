@@ -94,14 +94,11 @@ const removeFromCart = async (req, res) => {
 */
 const replaceCart = async (req, res) => {
     const { userId, items } = req.body;
+    const transaction = client.transaction("write");
 
     try {
-        await client.execute({
-            sql: "BEGIN",
-        });
-
         // Clear current cart items
-        await client.execute({
+        await transaction.execute({
             sql: "DELETE FROM carts WHERE user_id = ?",
             args: [userId],
         });
@@ -114,16 +111,11 @@ const replaceCart = async (req, res) => {
                 args: [userId, productId, quantity],
             });
         }
-
-        await client.execute({
-            sql: "COMMIT",
-        });
+        await transaction.commit();
 
         res.status(200).json({ message: "Cart updated successfully" });
     } catch (error) {
-        await client.execute({
-            sql: "ROLLBACK",
-        });
+        await transaction.rollback()
         res.status(500).json({ error: "Failed to update cart" });
     }
 };
