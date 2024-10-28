@@ -11,7 +11,8 @@ const CartPage = () => {
         window.location.href = 'http://localhost:3000/login';
     }
 
-    const userId = auth.user.sub.split('|')[1];
+    //This has to be changed when the db has the fk with the provider_id
+    const userId = 8;
     const [cart, setCart] = useState({ productsInCart: [], totalPrice: 0 });
 
     useEffect(() => {
@@ -23,13 +24,10 @@ const CartPage = () => {
 
                 //maybe this works, idk
                 for (const item of items) {
-                    const response = await fetch(`http://localhost:3000/api/products/${item.product_id}`);
-                    const productData = await response.json();
-
                     const product = {
                         productId: item.product_id,
-                        name: productData.title,
-                        price: productData.price,
+                        title: item.title,
+                        price: item.price,
                         quantity: item.quantity,
                     };
 

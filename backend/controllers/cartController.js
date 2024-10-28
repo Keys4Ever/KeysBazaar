@@ -7,12 +7,14 @@ const getProductFromCart = async (userId, productId) => {
             args: [userId, productId],
         });
         
-        return result && result.rows.length > 0 ? result.rows[0] : null;
+        // Verifica que 'result' contenga 'rows' y devuelve un array vacío si no existe
+        return result && result.rows ? { rows: result.rows } : { rows: [] };
     } catch (error) {
         console.error("Error retrieving product from cart:", error);
         throw new Error("Failed to retrieve product from cart");
     }
-}
+};
+
 
 // Fetch all cart items for a specific user
 const getCartItems = async (req, res) => {
@@ -46,18 +48,18 @@ const addToCart = async (req, res) => {
                 sql: "UPDATE carts SET quantity = quantity + ? WHERE user_id = ? AND product_id = ?",
                 args: [quantity, userId, productId],
             });
-            res.status(200).json({ message: "Cart updated successfully" });
+            res.status(200).json({ message: "Cart updated successfully", ok: true });
         } else {
             // Insert a new item into the cart
             await client.execute({
                 sql: "INSERT INTO carts (user_id, product_id, quantity) VALUES (?, ?, ?)",
                 args: [userId, productId, quantity],
             });
-            res.status(201).json({ message: "Item added to cart" });
+            res.status(201).json({ message: "Item added to cart", ok: true });
         }
     } catch (error) {
         console.error("Error adding item to cart:", error);
-        res.status(500).json({ error: "Failed to add item to cart" });
+        res.status(500).json({ error: "Failed to add item to cart", ok: false });
     }
 };
 
@@ -68,9 +70,9 @@ const removeFromCart = async (req, res) => {
 
     try {
         const { rows } = await getProductFromCart(userId, productId);
-
+        
         if (rows.length === 0) {
-            return res.status(404).json({ error: "Item not found in cart" });
+            return res.status(404).json({ error: "Item not found in cart", ok: false });
         }
 
         if (rows[0].quantity > 1) {
@@ -79,17 +81,18 @@ const removeFromCart = async (req, res) => {
                 sql: "UPDATE carts SET quantity = quantity - 1 WHERE user_id = ? AND product_id = ?",
                 args: [userId, productId],
             });
-            res.status(200).json({ message: "Item quantity decreased by 1" });
+            res.status(200).json({ message: "Item quantity decreased by 1", ok: true });
         } else {
             // Remove item if quantity is one
             await client.execute({
                 sql: "DELETE FROM carts WHERE user_id = ? AND product_id = ?",
                 args: [userId, productId],
             });
-            res.status(200).json({ message: "Item removed from cart successfully" });
+            res.status(200).json({ message: "Item removed from cart successfully", ok: true });
         }
     } catch (error) {
-        res.status(500).json({ error: "Failed to remove item from cart" });
+        console.error(error);
+        res.status(500).json({ error: "Failed to remove item from cart", ok: false });
     }
 };  
 

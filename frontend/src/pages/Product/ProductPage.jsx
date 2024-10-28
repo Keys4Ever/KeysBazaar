@@ -2,11 +2,16 @@ import { useParams } from 'react-router-dom';
 import './ProductPage.css';
 import ProductSlider from '@components/ProductSlider/ProductSlider';
 import { useEffect, useState } from 'react';
+import { addToCart } from '../../services/CartServices';
 
 const ProductPage = () => {
     const { id } = useParams();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
+    const userid = 8;
+    const quantity = 1; //maybe the user should input the quantity they want to buy
+
+
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -28,10 +33,21 @@ const ProductPage = () => {
         fetchProduct();
     }, [id]);
 
-    function handleAddCartButton() {
+    async function handleAddCartButton() {
         if (product) {
-            //Kaypi chayanchis hukchasqayta karuta yapaypaq.
-            alert(`Has agregado el producto "${product.title}" al carrito`);
+            try {
+                const response = await addToCart(userid, id, quantity);
+                if (response.ok) {
+                    alert("Product added to cart successfully!");
+                }else{
+                    alert("Error adding product to cart");
+                }
+
+            } catch (error) {
+                alert(`An error occurred: ${error.message}`);
+            }
+        } else {
+            alert("No product selected.");
         }
     }
 

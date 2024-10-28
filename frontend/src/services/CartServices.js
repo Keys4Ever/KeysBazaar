@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api/cart';
+const API_URL = 'http://localhost:3000/api/carts';
 
 export const getCartItems = async (userId) => {
     try {
