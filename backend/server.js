@@ -40,7 +40,7 @@ app.get("/callback", (req, res) => {
 
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
-app.use("/api/cart", cartRoutes);
+app.use("/api/carts", cartRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/", authRoutes);
 

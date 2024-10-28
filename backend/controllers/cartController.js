@@ -1,11 +1,17 @@
 import client from "../config/turso.js";
 
-async function getProductFromCart(userId, productId) {
-    const result = await client.execute({
-        sql: "SELECT * FROM carts WHERE user_id = ? AND product_id = ?",
-        args: [userId, productId],
-    });
-    return result;
+const getProductFromCart = async (userId, productId) => {
+    try {
+        const result = await client.execute({
+            sql: "SELECT * FROM carts WHERE user_id = ? AND product_id = ?",
+            args: [userId, productId],
+        });
+        
+        return result && result.rows.length > 0 ? result.rows[0] : null;
+    } catch (error) {
+        console.error("Error retrieving product from cart:", error);
+        throw new Error("Failed to retrieve product from cart");
+    }
 }
 
 // Fetch all cart items for a specific user
@@ -26,19 +32,23 @@ const getCartItems = async (req, res) => {
 // Add or update an item in the user's cart
 const addToCart = async (req, res) => {
     const { userId, productId, quantity } = req.body;
-    
+
+    if (!userId || !productId || quantity <= 0) {
+        return res.status(400).json({ error: "Invalid input data" });
+    }
+
     try {
         const result = await getProductFromCart(userId, productId);
 
         if (result && result.rows.length > 0) {
-            // Update quantity if item exists
+            // Update quantity if item already exists in cart
             await client.execute({
                 sql: "UPDATE carts SET quantity = quantity + ? WHERE user_id = ? AND product_id = ?",
                 args: [quantity, userId, productId],
             });
             res.status(200).json({ message: "Cart updated successfully" });
         } else {
-            // Add new item to cart
+            // Insert a new item into the cart
             await client.execute({
                 sql: "INSERT INTO carts (user_id, product_id, quantity) VALUES (?, ?, ?)",
                 args: [userId, productId, quantity],
@@ -46,10 +56,11 @@ const addToCart = async (req, res) => {
             res.status(201).json({ message: "Item added to cart" });
         }
     } catch (error) {
-        console.error(error);
+        console.error("Error adding item to cart:", error);
         res.status(500).json({ error: "Failed to add item to cart" });
     }
 };
+
 
 // Remove or reduce the quantity of an item in the cart
 const removeFromCart = async (req, res) => {
