@@ -22,5 +22,5 @@ KeysBazaar simulates the core functionalities of a typical e-commerce platform, 
 
 ## To-Do List
 
-- [ ] Finish catalog - Kosmo
-- [ ] Fix getAllProducts (now the limit and offset dont work, I think I deleted it by accident)
+- [X] Finish catalog - Kosmo
+- [X] Fix getAllProducts (now the limit and offset dont work, I think I deleted it by accident)

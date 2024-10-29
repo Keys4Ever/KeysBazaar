@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import ProductCard from "@components/ProductCard/ProductCard";
+import ProductGrid from "../../components/ProductGrid/ProductGrid";
 import Filters from "../../components/Filters/Filters.jsx";
 import Pagination from "../../components/PaginationControls/Pagination.jsx";
 import useProducts from "../../hooks/useProducts.js";
@@ -51,22 +51,10 @@ const CatalogPage = () => {
             {loading ? (
                 <div>Loading...</div>
             ) : (
-                <div className="product-grid">
-                    {products.length > 0 ? (
-                        products.map(product => (
-                            <ProductCard
-                                key={product.id}
-                                banner={product.imageUrl}
-                                name={product.title}
-                                price={product.price}
-                                productId={product.id}
-                                trailer={product.trailerUrl}
-                            />
-                        ))
-                    ) : (
-                        <div>No products found</div>
-                    )}
-                </div>
+                <ProductGrid
+                    currentProducts={products}
+                    gridName="product"
+                />
             )}
 
             <Pagination

@@ -6,22 +6,28 @@ import SectionSeparator from '@components/SectionSeparator/SectionSeparator.jsx'
 import ProductGrid from '@components/ProductGrid/ProductGrid.jsx';
 
 function App() {
-    const  [products, setProducts] = useState([]);
+    const [products, setProducts] = useState([]);
 
-    useEffect(()=>{
-
+    useEffect(() => {
+        if (products.length === 0) {
             fetch('http://localhost:3000/api/products/most-popular')
-                            .then(response => response.json())
-                            .then(data => setProducts(data))
-                            .catch(error => console.error(error));
-    })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => setProducts(data))
+                .catch(error => console.error('Fetch error:', error));
+        }
+    }, [products]);
 
     return (
         <div className="App">
-            <Banner/>
+            <Banner />
 
             <Section title="Most Popular Games">
-                <ProductGrid currentProducts={[products]} gridName="product"/>
+                <ProductGrid currentProducts={products} gridName="product" />
             </Section>
 
             <SectionSeparator>
@@ -44,4 +50,5 @@ function App() {
         </div>
     );
 }
+
 export default App;
