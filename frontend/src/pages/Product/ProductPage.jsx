@@ -1,4 +1,5 @@
 import { useParams } from 'react-router-dom';
+import { useAuth } from '@context/authContext';
 import './ProductPage.css';
 import ProductSlider from '@components/ProductSlider/ProductSlider';
 import { useEffect, useState } from 'react';
@@ -6,9 +7,10 @@ import { addToCart } from '../../services/CartServices';
 
 const ProductPage = () => {
     const { id } = useParams();
+    const { auth, loading: authLoading } = useAuth(); // Extraemos loading del auth context
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
-    const userid = 8;
+ 
     const quantity = 1; //maybe the user should input the quantity they want to buy
 
 
@@ -33,16 +35,19 @@ const ProductPage = () => {
         fetchProduct();
     }, [id]);
 
+    // Extract userId from auth state
+    const userId = auth.authenticated ? auth.user.sub.split('|')[1] : null;
+
+    // Handle adding product to cart
     async function handleAddCartButton() {
         if (product) {
             try {
-                const response = await addToCart(userid, id, quantity);
+                const response = await addToCart(userId, id, quantity);
                 if (response.ok) {
                     alert("Product added to cart successfully!");
                 }else{
                     alert("Error adding product to cart");
                 }
-
             } catch (error) {
                 alert(`An error occurred: ${error.message}`);
             }
@@ -53,7 +58,7 @@ const ProductPage = () => {
 
     window.scrollTo(0, 0);
 
-    if (loading) {
+    if (authLoading || loading) {
         return <div>Cargando...</div>;
     }
 
