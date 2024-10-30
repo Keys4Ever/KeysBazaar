@@ -3,7 +3,7 @@ import client from "../config/turso.js";
 const getProductFromCart = async (userId, productId) => {
     try {
         const result = await client.execute({
-            sql: "SELECT * FROM carts WHERE user_id = ? AND product_id = ?",
+            sql: "SELECT * FROM carts WHERE provider_id = ? AND product_id = ?",
             args: [userId, productId],
         });
         
@@ -22,7 +22,7 @@ const getCartItems = async (req, res) => {
 
     try {
         const { rows } = await client.execute({
-            sql: "SELECT carts.*, products.title, products.price FROM carts JOIN products ON carts.product_id = products.id WHERE carts.user_id = ?",
+            sql: "SELECT carts.*, products.title, products.price FROM carts JOIN products ON carts.product_id = products.id WHERE carts.provider_id = ?",
             args: [userId],
         });
         res.json(rows);
@@ -33,7 +33,9 @@ const getCartItems = async (req, res) => {
 
 // Add or update an item in the user's cart
 const addToCart = async (req, res) => {
-    const { userId, productId, quantity } = req.body;
+    let { userId, productId, quantity } = req.body;
+
+    userId = String(userId); // I think my aversion to TypeScript is vanishing...
 
     if (!userId || !productId || quantity <= 0) {
         return res.status(400).json({ error: "Invalid input data" });
@@ -45,14 +47,14 @@ const addToCart = async (req, res) => {
         if (result && result.rows.length > 0) {
             // Update quantity if item already exists in cart
             await client.execute({
-                sql: "UPDATE carts SET quantity = quantity + ? WHERE user_id = ? AND product_id = ?",
+                sql: "UPDATE carts SET quantity = quantity + ? WHERE provider_id = ? AND product_id = ?",
                 args: [quantity, userId, productId],
             });
             res.status(200).json({ message: "Cart updated successfully", ok: true });
         } else {
             // Insert a new item into the cart
             await client.execute({
-                sql: "INSERT INTO carts (user_id, product_id, quantity) VALUES (?, ?, ?)",
+                sql: "INSERT INTO carts (provider_id, product_id, quantity) VALUES (?, ?, ?)",
                 args: [userId, productId, quantity],
             });
             res.status(201).json({ message: "Item added to cart", ok: true });
@@ -78,14 +80,14 @@ const removeFromCart = async (req, res) => {
         if (rows[0].quantity > 1) {
             // Reduce quantity if more than one exists
             await client.execute({
-                sql: "UPDATE carts SET quantity = quantity - 1 WHERE user_id = ? AND product_id = ?",
+                sql: "UPDATE carts SET quantity = quantity - 1 WHERE provider_id = ? AND product_id = ?",
                 args: [userId, productId],
             });
             res.status(200).json({ message: "Item quantity decreased by 1", ok: true });
         } else {
             // Remove item if quantity is one
             await client.execute({
-                sql: "DELETE FROM carts WHERE user_id = ? AND product_id = ?",
+                sql: "DELETE FROM carts WHERE provider_id = ? AND product_id = ?",
                 args: [userId, productId],
             });
             res.status(200).json({ message: "Item removed from cart successfully", ok: true });
@@ -114,7 +116,7 @@ const replaceCart = async (req, res) => {
     try {
         // Clear current cart items
         await transaction.execute({
-            sql: "DELETE FROM carts WHERE user_id = ?",
+            sql: "DELETE FROM carts WHERE provider_id = ?",
             args: [userId],
         });
 
@@ -122,7 +124,7 @@ const replaceCart = async (req, res) => {
         for (const item of items) {
             const { productId, quantity } = item;
             await client.execute({
-                sql: "INSERT INTO carts (user_id, product_id, quantity) VALUES (?, ?, ?)",
+                sql: "INSERT INTO carts (provider_id, product_id, quantity) VALUES (?, ?, ?)",
                 args: [userId, productId, quantity],
             });
         }
