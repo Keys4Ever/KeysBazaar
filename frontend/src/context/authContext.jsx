@@ -4,6 +4,7 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [auth, setAuth] = useState({ authenticated: false, user: null });
+  const [loading, setLoading] = useState(true); // New loading state
 
   const fetchAuthStatus = async () => {
     try {
@@ -15,10 +16,12 @@ export const AuthProvider = ({ children }) => {
       console.log(data);
     } catch (error) {
       console.error('Error:', error);
+    } finally {
+      setLoading(false); // Set loading to false after fetching
     }
   };
-  
 
+  
   useEffect(() => {
     fetchAuthStatus();
   }, []);
@@ -26,14 +29,14 @@ export const AuthProvider = ({ children }) => {
   const login = () => {
     window.location.href = 'http://localhost:3000/login'; 
   };
-  
+
 
   const logout = async () => {
-    window.location.href = 'http://localhost:3000/logout'
+    window.location.href = 'http://localhost:3000/logout';
   };
 
   return (
-    <AuthContext.Provider value={{ auth, login, logout }}>
+    <AuthContext.Provider value={{ auth, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
