@@ -12,6 +12,10 @@ const getAllProducts = async (req, res) => {
             offset = 0
         } = req.query;
 
+        const categoriesArray = Array.isArray(categories)
+            ? categories.map(Number)
+            : [parseInt(categories, 10)].filter(n => !isNaN(n));
+
         let parsedLimit = parseInt(limit, 10);
         let parsedOffset = parseInt(offset, 10);
         let warnings = [];
@@ -27,11 +31,11 @@ const getAllProducts = async (req, res) => {
         }
 
         const { query: filterQuery, params: filterParams } = buildProductFilters({
-            search, minPrice, maxPrice, categories
+            search, minPrice, maxPrice, categories: categoriesArray
         });
 
         let productIdsQuery = `
-            SELECT p.id, COUNT(*) OVER() as found_products_number
+            SELECT p.id, COUNT(DISTINCT c.id) as matched_categories, COUNT(*) OVER() as found_products_number
             FROM products p
             JOIN product_categories pc ON p.id = pc.product_id
             JOIN categories c ON pc.category_id = c.id
@@ -39,9 +43,9 @@ const getAllProducts = async (req, res) => {
             GROUP BY p.id
         `;
 
-        if (categories.length > 0) {
-            productIdsQuery += " HAVING COUNT(DISTINCT c.id) = ?";
-            filterParams.push(categories.length);
+        if (categoriesArray.length > 0) {
+            productIdsQuery += " HAVING matched_categories = ?";
+            filterParams.push(categoriesArray.length);
         }
 
         if (parsedLimit !== null) {
@@ -70,6 +74,7 @@ const getAllProducts = async (req, res) => {
         const productParams = [...productIds];
         const { rows: productRows } = await client.execute(productQuery, productParams);
 
+        // Organize products by ID with categories
         const productsMap = {};
         productRows.forEach(row => {
             if (!productsMap[row.id]) {
