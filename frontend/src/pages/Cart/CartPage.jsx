@@ -5,18 +5,22 @@ import { getCartItems, addToCart, removeFromCart } from '@services/cartServices.
 import './CartPage.css';
 
 const CartPage = () => {
-    const { auth } = useAuth();
-
-    if (!auth.authenticated) {
-        window.location.href = 'http://localhost:3000/login';
-    }
-
-    //This has to be changed when the db has the fk with the provider_id
-    const userId = 8;
+    const { auth, loading: authLoading } = useAuth();
+    
+    useEffect(() => {
+        if (!auth.authenticated && !authLoading) {
+            window.location.href = 'http://localhost:3000/login';
+        }
+    }, [auth, authLoading]);
     const [cart, setCart] = useState({ productsInCart: [], totalPrice: 0 });
+
+    // get userId  from auth
+    const userId = auth.authenticated ? auth.user.sub.split('|')[1] : null;
 
     useEffect(() => {
         const fetchCart = async () => {
+            if (!userId) return;
+
             try {
                 const items = await getCartItems(userId);
                 let total = 0;
