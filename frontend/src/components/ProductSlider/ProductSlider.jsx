@@ -1,10 +1,15 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import "./ProductSlider.css";
-import products from "@utils/mockup.json";
 import ProductGrid from "@components/ProductGrid/ProductGrid.jsx";
+import useProducts from "@hooks/useProducts";
 
 const ProductSlider = () => {
     const sliderRef = useRef(null);
+    const { products, fetchProducts, loading } = useProducts();
+
+    useEffect(() => {
+        fetchProducts({});
+    }, [fetchProducts]);
 
     const handleScroll = (direction) => {
         if (sliderRef.current) {
@@ -22,7 +27,11 @@ const ProductSlider = () => {
             <button className="slider-button left" onClick={() => handleScroll("left")}>
                 &#10094;
             </button>
-            <ProductGrid currentProducts={products} gridName="slider" ref={sliderRef}/>
+            {loading ? (
+                <p>Loading...</p>
+            ) : (
+                <ProductGrid currentProducts={products} gridName="slider"/>
+            )}
             <button className="slider-button right" onClick={() => handleScroll("right")}>
                 &#10095;
             </button>
