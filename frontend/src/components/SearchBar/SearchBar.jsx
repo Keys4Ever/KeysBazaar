@@ -3,34 +3,18 @@ import searchIcon from "@assets/images/magnifying-glass.svg";
 import clearIcon from "@assets/images/clear-search.svg";
 import "./SearchBar.css";
 
-const SearchBar = ({ setResults }) => {
+const SearchBar = ({ onSearch, onBlur }) => {
     const [searchTerm, setSearchTerm] = useState("");
-
-    const fetchData = (value) => {
-        fetch(`http://localhost:3000/api/products`)
-            .then((response) => response.json())
-            .then((products) => {
-                const filteredResults = products.filter((product) =>
-                    product.title.toLowerCase().includes(value.toLowerCase())
-                );
-                setResults(filteredResults);
-            })
-            .catch((error) => console.error("Error fetching data:", error));
-    };
 
     const handleSearchChange = (e) => {
         const value = e.target.value;
         setSearchTerm(value);
-        if (value) {
-            fetchData(value);
-        } else {
-            setResults([]); // Clear results when search is empty
-        }
+        onSearch(value); // Trigger search
     };
 
     const handleClearSearch = () => {
         setSearchTerm("");
-        setResults([]);
+        onSearch(""); // Clear results
     };
 
     return (
@@ -44,6 +28,7 @@ const SearchBar = ({ setResults }) => {
                 onChange={handleSearchChange}
                 placeholder="Search products..."
                 aria-label="Search products"
+                onBlur={onBlur} // Call onBlur to hide results
             />
             {searchTerm && (
                 <button

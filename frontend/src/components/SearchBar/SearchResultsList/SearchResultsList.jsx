@@ -1,16 +1,18 @@
 import { useNavigate } from "react-router-dom";
 import "./SearchResultsList.css";
 
-const SearchResultsList = ({ results }) => {
+const SearchResultsList = ({ results, allProducts }) => {
     const navigate = useNavigate();
 
     const handleResultClick = (id) => {
         navigate(`/product/${id}`);
     };
 
+    const displayResults = results.length > 0 ? results : allProducts;
+
     return (
         <div className="results-list">
-            {results.map((result) => (
+            {displayResults.map((result) => (
                 <div
                     key={result.id}
                     className="search-result"
