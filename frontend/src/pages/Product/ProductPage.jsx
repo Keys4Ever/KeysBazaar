@@ -7,13 +7,11 @@ import { addToCart } from '../../services/CartServices';
 
 const ProductPage = () => {
     const { id } = useParams();
-    const { auth, loading: authLoading } = useAuth(); // Extraemos loading del auth context
+    const { auth, loading: authLoading } = useAuth();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
- 
-    const quantity = 1; //maybe the user should input the quantity they want to buy
 
-
+    const quantity = 1;
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -35,17 +33,15 @@ const ProductPage = () => {
         fetchProduct();
     }, [id]);
 
-    // Extract userId from auth state
     const userId = auth.authenticated ? auth.user.sub.split('|')[1] : null;
 
-    // Handle adding product to cart
     async function handleAddCartButton() {
         if (product) {
             try {
-                const response = await addToCart(userId, id, quantity);
+                const response = await addToCart(userId, id, quantity, product);
                 if (response.ok) {
                     alert("Product added to cart successfully!");
-                }else{
+                } else {
                     alert("Error adding product to cart");
                 }
             } catch (error) {
@@ -59,21 +55,21 @@ const ProductPage = () => {
     window.scrollTo(0, 0);
 
     if (authLoading || loading) {
-        return <div>Cargando...</div>;
+        return <div>Loading...</div>;
     }
 
     if (!product) {
-        return <div>No se encontró el producto.</div>;
+        return <div>Product not found.</div>;
     }
 
     return (
         <>
-            <div className='product-page' id='asd'>
+            <div className='product-page'>
                 <img className='product-image' src={product.imageUrl} alt={product.title} />
                 <div className='product-info'>
                     <h1 className='product-title'>{product.title}</h1>
-                    <p className='product-price'>Precio: ${product.price}</p>
-                    <button className='product-button' onClick={handleAddCartButton}>Agregar al carrito</button>
+                    <p className='product-price'>Price: ${product.price}</p>
+                    <button className='product-button' onClick={handleAddCartButton}>Add to Cart</button>
                     <p className='product-details'>{product.description}</p>
                 </div>
             </div>

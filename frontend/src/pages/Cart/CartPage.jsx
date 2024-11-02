@@ -10,24 +10,24 @@ const CartPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        if (!auth.authenticated && !authLoading) {
-            window.location.href = 'http://localhost:3000/login';
-        }
-    }, [auth, authLoading]);
-
     const userId = auth.authenticated ? auth.user.sub.split('|')[1] : null;
+    const localCartKey = 'localCart';
 
     useEffect(() => {
-        const fetchCart = async () => {
-            if (!userId) return;
+        const loadCart = async () => {
             setLoading(true);
             setError(null);
 
             try {
-                const items = await getCartItems(userId);
-                const { products, total } = calculateCart(items);
-                setCart({ productsInCart: products, totalPrice: total });
+                if (userId) {
+                    const items = await getCartItems(userId);
+                    const { products, total } = calculateCart(items);
+                    setCart({ productsInCart: products, totalPrice: total });
+                } else {
+                    const localCart = JSON.parse(localStorage.getItem(localCartKey)) || [];
+                    const { products, total } = calculateCart(localCart);
+                    setCart({ productsInCart: products, totalPrice: total });
+                }
             } catch (error) {
                 setError("Failed to load cart items.");
             } finally {
@@ -35,7 +35,7 @@ const CartPage = () => {
             }
         };
 
-        fetchCart();
+        loadCart();
     }, [userId]);
 
     const calculateCart = (items) => {
@@ -55,7 +55,9 @@ const CartPage = () => {
 
     const handleAdd = async (productId) => {
         try {
-            await addToCart(userId, productId, 1);
+            if (userId) {
+                await addToCart(userId, productId, 1);
+            } 
             updateCartState(productId, 1);
         } catch (error) {
             setError("Failed to add item to cart.");
@@ -64,7 +66,9 @@ const CartPage = () => {
 
     const handleMinus = async (productId) => {
         try {
-            await removeFromCart(userId, productId);
+            if (userId) {
+                await removeFromCart(userId, productId);
+            } 
             updateCartState(productId, -1);
         } catch (error) {
             setError("Failed to remove item from cart.");
@@ -79,11 +83,19 @@ const CartPage = () => {
                     : product
                 )
                 .filter(product => product.quantity > 0);
+
             const updatedTotalPrice = updatedProducts.reduce(
                 (acc, product) => acc + product.price * product.quantity, 
                 0
             );
-            return { productsInCart: updatedProducts, totalPrice: updatedTotalPrice };
+
+            const updatedCart = { productsInCart: updatedProducts, totalPrice: updatedTotalPrice };
+
+            if (!userId) {
+                localStorage.setItem(localCartKey, JSON.stringify(updatedProducts));
+            }
+
+            return updatedCart;
         });
     };
 

@@ -1,4 +1,5 @@
 const API_URL = 'http://localhost:3000/api/carts';
+const localCartKey = 'localCart';
 
 export const getCartItems = async (userId) => {
     try {
@@ -13,22 +14,42 @@ export const getCartItems = async (userId) => {
     }
 };
 
-export const addToCart = async (userId, productId, quantity) => {
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ userId, productId, quantity }),
-        });
-        if (!response.ok) {
-            throw new Error("Failed to add item to cart");
+export const addToCart = async (userId, productId, quantity, product = null) => {
+    // If userId is available, use the API to add the item to the cart
+    if (userId) {
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userId, productId, quantity }),
+            });
+            if (!response.ok) {
+                throw new Error("Failed to add item to cart");
+            }
+            return await response.json();
+        } catch (error) {
+            console.error(error);
+            throw error;
         }
-        return await response.json();
-    } catch (error) {
-        console.error(error);
-        throw error;
+    } else {
+        const localCart = JSON.parse(localStorage.getItem(localCartKey)) || [];
+        
+        const existingProductIndex = localCart.findIndex(item => item.product_id === productId);
+        if (existingProductIndex >= 0) {
+            localCart[existingProductIndex].quantity += quantity;
+        } else if (product) {
+            localCart.push({ 
+                product_id: productId, 
+                title: product.title, 
+                price: product.price, 
+                quantity 
+            });
+        }
+
+        localStorage.setItem(localCartKey, JSON.stringify(localCart));
+        return { ok: true };
     }
 };
 
