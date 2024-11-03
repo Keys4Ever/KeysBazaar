@@ -22,10 +22,8 @@ KeysBazaar simulates the core functionalities of a typical e-commerce platform, 
 
 ## To-Do List
 
-- [X] Finish catalog - Kosmo
-- [X] Fix getAllProducts (now the limit and offset dont work, I think I deleted it by accident)
 - [ ] Show user info in profile
 - [ ] LocalStorage for userId (Maybe)
-- [ ] LocalStorage for cart
+- [X] LocalStorage for cart
 - [ ] Pre-fetches for products when hover
 - [ ] Pre-fetch titles in homepage
