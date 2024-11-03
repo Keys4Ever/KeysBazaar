@@ -25,5 +25,5 @@ KeysBazaar simulates the core functionalities of a typical e-commerce platform, 
 - [ ] Show user info in profile
 - [ ] LocalStorage for userId (Maybe)
 - [X] LocalStorage for cart
-- [ ] Pre-fetches for products when hover
-- [ ] Pre-fetch titles in homepage
+- [X] Pre-fetches for products when hover
+- [X] Pre-fetch titles in homepage
