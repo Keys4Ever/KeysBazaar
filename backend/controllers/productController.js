@@ -372,4 +372,14 @@ const getUncategorizedProducts = async (req, res) => {
     }
 };
 
-export { getAllProducts, createProduct, deleteProduct, updateProduct, getOneProduct, getMostPopularProduct, getUncategorizedProducts };
+const getNamesAndIds = async (req, res) => {
+    try {
+        const { rows } = await client.execute("SELECT id, title FROM products");
+        res.status(200).json({ products: rows });
+    } catch (error) {
+        console.error("Error fetching names and ids:", error);
+        res.status(500).json({ error: "Failed to retrieve names and ids" });
+    }
+}
+
+export { getAllProducts, createProduct, deleteProduct, updateProduct, getOneProduct, getMostPopularProduct, getUncategorizedProducts, getNamesAndIds };

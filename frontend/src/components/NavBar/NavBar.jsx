@@ -12,18 +12,20 @@ const NavBar = () => {
     const [showResults, setShowResults] = useState(false);
     const navigate = useNavigate();
 
+
+    const fetchMinimalProducts = async () => {
+        try {
+            const response = await fetch(`http://localhost:3000/api/products/names-and-ids`);
+            const data = await response.json();
+            setProducts(data.products);
+        } catch (error) {
+            console.error("Error fetching minimal products:", error);
+        }
+    }
+
     // Fetching product data on mount
     useEffect(() => {
-        fetch(`http://localhost:3000/api/products`)
-            .then((response) => response.json())
-            .then((data) => {
-                const minimalProducts = data.products.map((product) => ({
-                    id: product.id,
-                    title: product.title,
-                }));
-                setProducts(minimalProducts);
-            })
-            .catch((error) => console.error("Error fetching product data:", error));
+        fetchMinimalProducts();
     }, []);
 
     // Searching functionality
