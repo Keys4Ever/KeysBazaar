@@ -12,25 +12,45 @@ const ProductPage = () => {
     const [loading, setLoading] = useState(true);
 
     const quantity = 1;
+   
+    
+    const retrieveProductFromLocalStorage = () => {
+        const localProduct = localStorage.getItem(`product-${id}`);
+        setProduct(JSON.parse(localProduct));
+        setLoading(false);
 
-    useEffect(() => {
-        const fetchProduct = async () => {
-            try {
-                const response = await fetch(`http://localhost:3000/api/products/${id}`);
-                if (!response.ok) {
-                    throw new Error(`Can't find product with id ${id}`);
-                }
-                const data = await response.json();
-                setProduct(data);
-            } catch (error) {
-                console.error(error);
-                alert(error.message);
-            } finally {
-                setLoading(false);
+        // Maybe this should be used when the user leaves the page 
+        // I have putted this because i want to clear the local storage, so it won't have old products.
+        clearAllProductsFromLocalStorage();
+    }
+    const clearAllProductsFromLocalStorage = () => {
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('product-')) {
+                localStorage.removeItem(key);
             }
-        };
-
-        fetchProduct();
+        });
+    };
+    const fetchProduct = async () => {
+        try {
+            const response = await fetch(`http://localhost:3000/api/products/${id}`);
+            if (!response.ok) {
+                throw new Error(`Can't find product with id ${id}`);
+            }
+            const data = await response.json();
+            setProduct(data);
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+    useEffect(() => {
+        if(localStorage.getItem(`product-${id}`)) {
+            retrieveProductFromLocalStorage();
+        } else {
+            fetchProduct();
+        }
     }, [id]);
 
     const userId = auth.authenticated ? auth.user.sub.split('|')[1] : null;

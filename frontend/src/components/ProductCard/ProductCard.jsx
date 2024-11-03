@@ -2,13 +2,30 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "./ProductCard.css";
 
-const ProductCard = ({ banner, name, price, productId, trailer }) => {
+const ProductCard = ({ imageUrl, title, price, productId, trailer, description }) => {
     const [isHovered, setIsHovered] = useState(false);
     const [videoTime, setVideoTime] = useState(0);
     const videoRef = useRef(null);
     const navigate = useNavigate();
-
+    const localProductKey = `product-${productId}`;
     const handleCardClick = () => navigate(`/product/${productId}`);
+    const [product, setProduct] = useState({
+        productId,
+        title,
+        price,
+        description,
+        imageUrl
+    });
+    const saveProduct = () => {
+        setProduct({
+            productId: productId,
+            title: title,
+            price: price,
+            description: description,
+            imageUrl: imageUrl
+        });
+        localStorage.setItem(localProductKey, JSON.stringify(product));
+    }
 
     const toggleHover = (hovered) => {
         setIsHovered(hovered);
@@ -31,7 +48,10 @@ const ProductCard = ({ banner, name, price, productId, trailer }) => {
     }, [isHovered, playVideo]);
 
     return (
-        <div className="product-card" onClick={handleCardClick}>
+        <div className="product-card" 
+        onClick={handleCardClick}
+            onMouseEnter={() => saveProduct()}
+        >
             <div
                 className="product-banner"
                 onMouseEnter={() => toggleHover(true)}
@@ -48,14 +68,14 @@ const ProductCard = ({ banner, name, price, productId, trailer }) => {
                     />
                 ) : (
                     <img
-                        src={banner}
-                        alt={`${name} banner`}
+                        src={imageUrl}
+                        alt={`${title} banner`}
                         className="product-banner-image"
                     />
                 )}
             </div>
             <div className="product-info">
-                <h3 className="product-name">{name}</h3>
+                <h3 className="product-name">{title}</h3>
                 <div className="product-price">{parseFloat(price).toFixed(2)}€</div>
             </div>
         </div>

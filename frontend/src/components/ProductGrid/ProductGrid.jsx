@@ -5,11 +5,12 @@ const ProductGrid = ({ currentProducts, gridName = 'undefined', ref}) => {
     <div className={`${gridName}-grid`} ref={ref}>
       {currentProducts.map((product) => (
         <ProductCard
-          banner={product.imageUrl}
-          name={product.title}
+          imageUrl={product.imageUrl}
+          title={product.title}
           price={product.price}
           productId={product.id}
           trailer={product.trailerUrl}
+          description={product.description}
           key={product.id}
         />
       ))}
