@@ -27,3 +27,4 @@ KeysBazaar simulates the core functionalities of a typical e-commerce platform, 
 - [X] LocalStorage for cart
 - [X] Pre-fetches for products when hover
 - [X] Pre-fetch titles in homepage
+- [ ] Integrate payment gateway (Stripe, PayPal, Crypto)
