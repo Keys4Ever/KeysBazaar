@@ -1,33 +1,31 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
-import Banner from '@components/Banner/Banner.jsx';
+import Banner from '../components/Banner/Banner.jsx';
 import Section from '@components/Section/Section.jsx';
 import SectionSeparator from '@components/SectionSeparator/SectionSeparator.jsx';
 import ProductGrid from '@components/ProductGrid/ProductGrid.jsx';
+import useMostPopularProduct from '../hooks/useMostPopular.js';
 
 function App() {
+    const { popularProducts, error } = useMostPopularProduct(5);
     const [products, setProducts] = useState([]);
 
     useEffect(() => {
-        if (products.length === 0) {
-            fetch('http://localhost:3000/api/products/most-popular')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => setProducts(data))
-                .catch(error => console.error('Fetch error:', error));
+        if (popularProducts) {
+            setProducts(popularProducts);
         }
-    }, [products]);
+    }, [popularProducts]);
 
     return (
         <div className="App">
             <Banner />
 
             <Section title="Most Popular Games">
-                <ProductGrid currentProducts={products} gridName="product" />
+                {error ? (
+                    <p>Error loading products: {error}</p>
+                ) : (
+                    <ProductGrid currentProducts={products} gridName="product" />
+                )}
             </Section>
 
             <SectionSeparator>

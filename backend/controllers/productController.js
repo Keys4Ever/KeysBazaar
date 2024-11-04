@@ -327,24 +327,37 @@ const getOneProduct = async (req, res) => {
     }
 };
 
-// Controller to get the most popular product
+// Updated Controller to get the most popular products with a limit
 const getMostPopularProduct = async (req, res) => {
     try {
-        const { rows } = await client.execute(`
+        // First, try to get the most popular products based on sales
+        const { rows: popularRows } = await client.execute(`
             SELECT p.id, p.title, p.description, p.price, p.imageUrl, p.trailerUrl, SUM(oi.quantity) AS total_sold
             FROM products p
             JOIN order_items oi ON p.id = oi.product_id
             GROUP BY p.id
             ORDER BY total_sold DESC
-            LIMIT 1;
+            LIMIT 1;  -- Adjust limit if you want more than one most popular product
         `);
 
-        if (rows.length < 1) {
-            return res.status(404).json({ message: "No products found" });
+        if (popularRows.length > 0) {
+            return res.status(200).json(popularRows[0]);
         }
 
-        res.status(200).json(rows[0]);
+        const { rows: randomRows } = await client.execute(`
+            SELECT id, title, description, price, imageUrl, trailerUrl
+            FROM products
+            ORDER BY RANDOM()
+            LIMIT 1;  -- Adjust limit if you want more than one random product
+        `);
+
+        if (randomRows.length > 0) {
+            return res.status(200).json(randomRows[0]);
+        }
+
+        res.status(404).json({ message: "No products found" });
     } catch (error) {
+        console.error("Error fetching the most popular product:", error);
         res.status(500).json({ error: "Failed to retrieve the most popular product" });
     }
 };

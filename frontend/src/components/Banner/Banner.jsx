@@ -1,27 +1,24 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import "./Banner.css";
+import useMostPopularProduct from "../../hooks/useMostPopular.js";
 
 const Banner = () => {
-    const [popularProduct, setPopularProduct] = useState(null);
+    const { popularProducts, error } = useMostPopularProduct(1);
 
-    useEffect(() => {
-        fetch("http://localhost:3000/api/products/most-popular")
-            .then((response) => response.json())
-            .then((data) => setPopularProduct(data))
-            .catch((error) =>
-                console.error("Error fetching the most popular product:", error)
-            );
-    }, []);
-
-    if (!popularProduct) {
-        return <div>Error</div>;
+    if (error) {
+        return <div>Error: {error}</div>;
     }
 
-    const backgroundImageUrl = "https://gaming-cdn.com/img/products/4378/pcover/1920x620/4378.jpg?v=1683706883";
+    const popularProduct = popularProducts[0];
+    if (!popularProduct) {
+        return <div>Loading...</div>;
+    }
+
+    const backgroundImageUrl = popularProduct.imageUrl || "";
 
     return (
         <div className="banner">
-            <img src={backgroundImageUrl} alt="Popular product background" />
+            <img src={backgroundImageUrl} alt="Popular product background" className="banner-background" />
             <div className="banner-overlay"></div>
             <div className="banner-content">
                 <h2>{popularProduct.title}</h2>
