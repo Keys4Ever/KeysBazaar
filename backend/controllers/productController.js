@@ -328,36 +328,34 @@ const getOneProduct = async (req, res) => {
 };
 
 // Updated Controller to get the most popular products with a limit
-// #TODO Has to be fixed
 const getMostPopularProduct = async (req, res) => {
     const desiredCount = parseInt(req.query.limit) || 1;
 
     try {
-        const { rows: popularRows } = await client.execute(`
-            SELECT p.id, p.title, p.description, p.price, p.imageUrl, p.trailerUrl, SUM(oi.quantity) AS total_sold
-            FROM products p
-            JOIN order_items oi ON p.id = oi.product_id
-            GROUP BY p.id
-            ORDER BY total_sold DESC
-            LIMIT 1
-        `);
+        const { rows: popularRows } = await client.execute(
+            `SELECT p.id, p.title, p.description, p.price, p.imageUrl, p.trailerUrl, SUM(oi.quantity) AS total_sold
+             FROM products p
+             JOIN order_items oi ON p.id = oi.product_id
+             GROUP BY p.id
+             ORDER BY total_sold DESC
+             LIMIT $1`, [desiredCount]
+        );
 
-        let products = [];
-
-        if (popularRows.length > 0) {
-            products.push({ ...popularRows[0], order: 1 });
-        }
+        let products = popularRows.map((product, index) => ({ ...product, order: index + 1 }));
 
         const remainingCount = desiredCount - products.length;
 
         if (remainingCount > 0) {
-            const { rows: randomRows } = await client.execute(`
-                SELECT id, title, description, price, imageUrl, trailerUrl
-                FROM products
-                WHERE id != ${products[0]?.id || 0} -- Exclude the popular product if it exists
-                ORDER BY RANDOM()
-                LIMIT ${remainingCount}
-            `);
+            const popularProductIds = products.map(p => p.id);
+            const placeholders = popularProductIds.map((_, i) => `$${i + 2}`).join(", ");
+
+            const { rows: randomRows } = await client.execute(
+                `SELECT id, title, description, price, imageUrl, trailerUrl
+                 FROM products
+                 WHERE id NOT IN (${placeholders})
+                 ORDER BY RANDOM()
+                 LIMIT $1`, [remainingCount, ...popularProductIds]
+            );
 
             const randomProductsWithOrder = randomRows.map((product, index) => ({
                 ...product,
@@ -367,15 +365,12 @@ const getMostPopularProduct = async (req, res) => {
             products = products.concat(randomProductsWithOrder);
         }
 
-        // Return the final array of products
         res.status(200).json(products);
     } catch (error) {
         console.error("Error fetching the most popular products:", error);
-        res.status(500).json({ error: "Failed to retrieve the most popular products" });
+        res.status(500).json({ error: "Failed to retrieve the most popular products. Please try again later." });
     }
 };
-
-
 
 // Controller to get all uncategorized products
 const getUncategorizedProducts = async (req, res) => {
