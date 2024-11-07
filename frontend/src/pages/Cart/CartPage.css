@@ -85,3 +85,18 @@ ul {
     font-size: 1.5rem;
     color: #fdfdc2;
 }
+
+.checkout-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.checkout-button:hover {
+    background-color: #0056b3;
+}
