@@ -10,6 +10,7 @@ import productRoutes from "./routes/productRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
+import paypalRoutes from './routes/paypalRoutes.js'
 
 const app = express();
 const port = 3000;;
@@ -41,6 +42,7 @@ app.get("/callback", (req, res) => {
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/carts", cartRoutes);
+app.use("/api/paypal", paypalRoutes)
 app.use("/api/categories", categoryRoutes);
 app.use("/", authRoutes);
 
