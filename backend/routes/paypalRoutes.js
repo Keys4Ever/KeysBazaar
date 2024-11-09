@@ -9,7 +9,7 @@ import {
 const router = express.Router();
 
 router.post('/initiate', initiatePayment);
-router.post('/capture', capturePayment);
+router.get('/capture', capturePayment);
 router.get('/history/:provider_id', getOrderHistory);
 router.get('/orders/:orderId', getOrderDetails);
 

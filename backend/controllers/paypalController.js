@@ -1,9 +1,42 @@
 import client from "../config/turso.js";
 import dotenv from 'dotenv';
-
+import fetch from 'node-fetch'
 dotenv.config();
 
 const PAYPAL_API = 'https://api-m.sandbox.paypal.com';
+
+/**
+ *      How to use:
+ * 
+ * 1. Post to http://localhost:3000/api/paypal/initiate with a body like:
+  {
+   "provider_id": "112531567876469090931", // It has to be a string
+   "items": [
+       {
+           "product_id": 64,
+           "quantity": 2
+       },
+       {
+           "product_id": 65,
+           "quantity": 1
+       }
+   ]
+ }
+ * 
+ * 2. In the response is ok you will get something like 
+ {
+    "orderId": 5,
+    "paypalOrderId": "5RA50173JV956822V",
+    "approvalUrl": "https://www.sandbox.paypal.com/checkoutnow?token=5RA50173JV956822V"
+ }
+ * You have to use the approval url to start the payment, you have to use a sandbox account to test this
+ *
+ * 
+ * 3. It will redirect you to something like: http://localhost:3000/api/paypal/capture?token=5RA50173JV956822V&PayerID=6W8DHC5GQHAQN
+ * there it will "commit" the payment. 
+ * 
+ */
+
 
 // Function to get the access token
 const getPayPalAccessToken = async () => {
@@ -28,7 +61,8 @@ const getPayPalAccessToken = async () => {
 
 // This has to be refactorized, use transactions, and requesting id's and price from req.
 const initiatePayment = async (req, res) => {
-    const { provider_id, items } = req.body;
+    let { provider_id, items } = req.body;
+    provider_id = String(provider_id);
     const transaction = await client.transaction("write");
 
     try {
@@ -84,8 +118,8 @@ const initiatePayment = async (req, res) => {
                 description: `Order ${orderId}`
             }],
             application_context: {
-                return_url: 'http://localhost:3000/callback',
-                cancel_url: 'http://localhost:3000/callback' //should change it
+                return_url: 'http://localhost:3000/api/paypal/capture',
+                cancel_url: 'http://localhost:3000' //should change it
             }
         };
 
@@ -124,78 +158,78 @@ const initiatePayment = async (req, res) => {
 };
 
 // Confirm payment with ppl api
-const capturePayment = async (req, res) => {
-    const { paypalOrderId } = req.body;
-    const transaction = await client.transaction("write");
-
-    try {
-        const accessToken = await getPayPalAccessToken();
-        const response = await fetch(`${PAYPAL_API}/v2/checkout/orders/${paypalOrderId}/capture`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${accessToken}`,
-            }
-        });
-
-        const paypalResponse = await response.json();
-        
-        if (paypalResponse.status !== 'COMPLETED') {
-            throw new Error('Payment not completed');
-        }
-
-        // get the order id from the db
-        const referenceId = paypalResponse.purchase_units[0].reference_id;
-        const orderId = parseInt(referenceId);
-
-        // Update the transaction status
-        await transaction.execute({
-            sql: "UPDATE transactions SET status = ? WHERE transaction_id = ?",
-            args: ['completed', paypalOrderId]
-        });
-
-        // Get the order items
-        const { rows: orderItems } = await transaction.execute({
-            sql: "SELECT product_id, quantity FROM order_items WHERE order_id = ?",
-            args: [orderId]
-        });
-
-        // Assing keys for every product
-        for (const item of orderItems) {
-            const { rows: availableKeys } = await transaction.execute({
-                sql: `SELECT id, key FROM product_keys 
-                     WHERE product_id = ? 
-                     AND id NOT IN (SELECT key_id FROM assigned_keys)
-                     LIMIT ?`,
-                args: [item.product_id, item.quantity]
+    const capturePayment = async (req, res) => {
+        const { token } = req.query;
+        const transaction = await client.transaction("write");
+        console.log(token);
+        try {
+            const accessToken = await getPayPalAccessToken();
+            const response = await fetch(`${PAYPAL_API}/v2/checkout/orders/${token}/capture`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${accessToken}`,
+                }
             });
 
-            if (availableKeys.length < item.quantity) {
-                throw new Error('Insufficient product keys available');
+            const paypalResponse = await response.json();
+            console.log(paypalResponse);
+            if (paypalResponse.status !== 'COMPLETED') {
+                throw new Error('Payment not completed');
             }
 
-            for (const key of availableKeys) {
-                await transaction.execute({
-                    sql: "INSERT INTO assigned_keys (order_id, key_id) VALUES (?, ?)",
-                    args: [orderId, key.id]
+            // get the order id from the db
+            const referenceId = paypalResponse.purchase_units[0].reference_id;
+            const orderId = parseInt(referenceId);
+
+            // Update the transaction status
+            await transaction.execute({
+                sql: "UPDATE transactions SET status = ? WHERE transaction_id = ?",
+                args: ['completed', token]
+            });
+
+            // Get the order items
+            const { rows: orderItems } = await transaction.execute({
+                sql: "SELECT product_id, quantity FROM order_items WHERE order_id = ?",
+                args: [orderId]
+            });
+
+            // Assing keys for every product
+            for (const item of orderItems) {
+                const { rows: availableKeys } = await transaction.execute({
+                    sql: `SELECT id, key FROM product_keys 
+                        WHERE product_id = ? 
+                        AND id NOT IN (SELECT key_id FROM assigned_keys)
+                        LIMIT ?`,
+                    args: [item.product_id, item.quantity]
                 });
+
+                if (availableKeys.length < item.quantity) {
+                    throw new Error('Insufficient product keys available');
+                }
+
+                for (const key of availableKeys) {
+                    await transaction.execute({
+                        sql: "INSERT INTO assigned_keys (order_id, key_id) VALUES (?, ?)",
+                        args: [orderId, key.id]
+                    });
+                }
             }
+
+            await transaction.commit();
+            
+            res.json({
+                success: true,
+                orderId,
+                transactionId: token
+            });
+
+        } catch (error) {
+            await transaction.rollback();
+            console.error("Error capturing payment:", error);
+            res.status(500).json({ error: "Failed to capture payment" });
         }
-
-        await transaction.commit();
-        
-        res.json({
-            success: true,
-            orderId,
-            transactionId: paypalOrderId
-        });
-
-    } catch (error) {
-        await transaction.rollback();
-        console.error("Error capturing payment:", error);
-        res.status(500).json({ error: "Failed to capture payment" });
-    }
-};
+    };
 
 // get order history
 const getOrderHistory = async (req, res) => {
