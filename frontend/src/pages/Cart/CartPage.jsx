@@ -83,7 +83,8 @@ const CartPage = () => {
         if (auth.authenticated) {
             navigate('/checkout');
         } else {
-            navigate('/login');
+            /* navigate('/login');  #TODO: add a Login page - Or only use auth0 one*/
+            window.location.href = 'http://localhost:3000/login';
         }
     };
 
