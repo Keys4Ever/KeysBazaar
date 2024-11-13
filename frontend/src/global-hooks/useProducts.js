@@ -1,42 +1,32 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 
-const useProducts = ({ id = null, search = "", minPrice = null, maxPrice = null, categories = [], limit = 10, offset = 0 } = {}) => {
-    const [products, setProducts] = useState(id ? null : []);
+const useProducts = ( id = null ) => {
+    const [products, setProducts] = useState([]);
     const [more, setMore] = useState(false);
     const [loading, setLoading] = useState(false);
-
-    const fetchProducts = useCallback(async () => {
+    const baseUrl = `http://localhost:3000/api/products/${id ? id : ''}`
+    const fetchProducts = useCallback(async ({ search = "", minPrice = null, maxPrice = null, categories = [], limit = 10, offset = 0 }) => {
         try {
             setLoading(true);
-            if (!id) setProducts([]);
+            setProducts([]); // Clear products before fetching new 
 
-            const baseUrl = `http://localhost:3000/api/products`;
-            let url;
+            const queryParams = new URLSearchParams({
+                search,
+                minPrice: minPrice !== null ? minPrice : "",
+                maxPrice: maxPrice !== null ? maxPrice : "",
+                limit: String(limit),
+                offset: String(offset)
+            });
 
-            if (id) {
-                url = `${baseUrl}/${id}`;
-            } else {
-                const queryParams = new URLSearchParams({
-                    search,
-                    minPrice: minPrice !== null ? minPrice : "",
-                    maxPrice: maxPrice !== null ? maxPrice : "",
-                    limit: String(limit),
-                    offset: String(offset)
-                });
-                categories.forEach(category => queryParams.append("categories", category));
-                url = `${baseUrl}?${queryParams.toString()}`;
-            }
+            // Append categories to query params
+            categories.forEach(category => queryParams.append("categories", category));
 
-            const response = await fetch(url);
+            const response = await fetch(`${baseUrl}?${queryParams.toString()}`);
             const data = await response.json();
 
             if (response.ok) {
-                if (id) {
-                    setProducts(data);
-                } else {
-                    setProducts(data.products);
-                    setMore(data.more);
-                }
+                setProducts(data.products);
+                setMore(data.more);
             } else {
                 console.error("Error fetching products:", data);
             }
@@ -45,11 +35,7 @@ const useProducts = ({ id = null, search = "", minPrice = null, maxPrice = null,
         } finally {
             setLoading(false);
         }
-    }, [id, search, minPrice, maxPrice, categories, limit, offset]);
-
-    useEffect(() => {
-        fetchProducts();
-    }, [fetchProducts]);
+    }, []);
 
     return { products, more, fetchProducts, loading };
 };
