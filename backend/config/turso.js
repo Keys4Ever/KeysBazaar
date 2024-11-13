@@ -6,4 +6,4 @@ const client = createClient({
     authToken: process.env.TURSO_TOKEN,
 });
 
-export default client;
+export default client
