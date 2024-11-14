@@ -15,7 +15,6 @@ const getProductFromCart = async (userId, productId) => {
     }
 };
 
-
 // Fetch all cart items for a specific user
 const getCartItems = async (req, res) => {
     const { userId } = req.params;
