@@ -67,29 +67,7 @@ const initiatePayment = async (req, res) => {
     const transaction = await client.transaction("write");
 
     if (!provider_id) {
-        try {
-            const result = await client.execute({
-                sql: 'SELECT provider_id FROM users WHERE email = ?',
-                args: [email]
-            });
-            console.log(result);
-            if (result.rows.length > 0) {
-                provider_id = result.rows[0].provider_id;
-                console.log(`El email ya existe. Provider_id recuperado: ${provider_id}`);
-            } else {
-                provider_id = crypto.randomUUID();
-    
-                await client.execute({
-                    sql: 'INSERT INTO users (email, provider, provider_id) VALUES (?, ?, ?)',
-                    args: [email, 'not registered', provider_id]
-                });
-    
-                console.log(`Nuevo usuario creado con provider_id: ${provider_id}`);
-            }
-        } catch (error) {
-            console.error('Error al manejar provider_id:', error);
-            throw new Error('Error procesando el usuario');
-        }
+        provider_id = await tempUser(email);
     }
     
 
@@ -369,6 +347,34 @@ const getOrderDetails = async (req, res) => {
         res.status(500).json({ error: "Failed to fetch order details" });
     }
 };
+
+async function tempUser(email){
+    try {
+        const result = await client.execute({
+            sql: 'SELECT provider_id FROM users WHERE email = ?',
+            args: [email]
+        });
+        console.log(result);
+        if (result.rows.length > 0) {
+            provider_id = result.rows[0].provider_id;
+            console.log(`El email ya existe. Provider_id recuperado: ${provider_id}`);
+            return provider_id;
+        } else {
+            provider_id = crypto.randomUUID();
+
+            await client.execute({
+                sql: 'INSERT INTO users (email, provider, provider_id) VALUES (?, ?, ?)',
+                args: [email, 'not registered', provider_id]
+            });
+
+            console.log(`Nuevo usuario creado con provider_id: ${provider_id}`);
+            return provider_id;
+        }
+    } catch (error) {
+        console.error('Error al manejar provider_id:', error);
+        throw new Error('Error procesando el usuario');
+    }
+}
 
 export {
     initiatePayment,
