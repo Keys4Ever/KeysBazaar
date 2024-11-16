@@ -29,8 +29,8 @@ const checkUserInDatabase = async (req, res, next) => {
 
             if (!existingUser.length) {
                 await client.execute({
-                sql: "INSERT INTO users (email, provider, provider_id, username, profile_picture) VALUES (?,?,?,?,?)",
-                args: [email, provider, provider_id, nickname, picture],
+                sql: "INSERT INTO users (email, provider, provider_id, username) VALUES (?,?,?,?)",
+                args: [email, provider, provider_id, nickname],
                 });
                 console.log("New OAuth user inserted into database");
             } else {
