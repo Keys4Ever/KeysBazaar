@@ -15,19 +15,28 @@ const CheckoutPage = () => {
     const { auth, loading } = useAuth();
     const [cartItems, setCartItems] = useState([]);
     const [userId, setUserId] = useState(null);
-
+    
     useEffect(() => {
         if (loading) return;
-
-        setUserId(auth.user.sub.split('|')[1]);
-
-        if (localStorage.getItem('localCart')) {
-            setCartItems(JSON.parse(localStorage.getItem('localCart')));
-        } else {
-            getCartItems(userId).then(setCartItems);
+    
+        if (auth?.user?.sub) {
+            const userId = auth.user.sub.split('|')[1];
+            setUserId(userId);
+    
+            if (localStorage.getItem('localCart')) {
+                setCartItems(JSON.parse(localStorage.getItem('localCart')));
+            } else {
+                getCartItems(userId).then(setCartItems).catch(err => {
+                    console.error("Error fetching cart items:", err);
+                });
+            }
         }
-    }, [auth.authenticated, loading]);
-
+    }, [auth, loading]);
+    
+    useEffect(() => {
+        console.log(cartItems); // Este console.log ahora reflejará el estado actualizado
+    }, [cartItems]);
+    
     const handlePaypal = async () => {
         const payload = {
             provider_id: String(auth.user.sub.split('|')[1]),
@@ -37,7 +46,7 @@ const CheckoutPage = () => {
             }))
         };
         console.log(payload)
-        const response = await fetch("http://localhost:3000/api/paypal/initiate", {
+        const response = await fetch(`http://localhost:3000/api/paypal/initiate?email=${auth.user.email}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

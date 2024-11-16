@@ -1,6 +1,7 @@
 import client from "../config/turso.js";
 import dotenv from 'dotenv';
 import fetch from 'node-fetch'
+import sendAssignedKey from "../services/resendServices.js";
 dotenv.config();
 
 const PAYPAL_API = 'https://api-m.sandbox.paypal.com';
@@ -62,6 +63,7 @@ const getPayPalAccessToken = async () => {
 // This has to be refactorized, use transactions, and requesting id's and price from req.
 const initiatePayment = async (req, res) => {
     let { provider_id, items } = req.body;
+    let { email } = req.query;
     provider_id = String(provider_id);
     const transaction = await client.transaction("write");
 
@@ -118,7 +120,7 @@ const initiatePayment = async (req, res) => {
                 description: `Order ${orderId}`
             }],
             application_context: {
-                return_url: 'http://localhost:3000/api/paypal/capture',
+                return_url: `http://localhost:3000/api/paypal/capture?email=${email}`,
                 cancel_url: 'http://localhost:3000' //should change it
             }
         };
@@ -159,7 +161,7 @@ const initiatePayment = async (req, res) => {
 
 // Confirm payment with ppl api
 const capturePayment = async (req, res) => {
-    const { token } = req.query;
+    const { token, email } = req.query;
     const transaction = await client.transaction("write");
     console.log(token);
     try {
@@ -226,13 +228,24 @@ const capturePayment = async (req, res) => {
 
         await transaction.commit();
         
-        // Respond with success and assigned keys
-        res.json({
+        //send email with the assigned key
+
+        const result = {
             success: true,
             orderId,
             transactionId: token,
-            assignedKeys
-        });
+            assignedKeys,
+            email
+        }
+
+        try{
+            sendAssignedKey(result);
+        }catch(err){
+            console.error(err);
+        }
+
+        // Respond with success and assigned keys
+        res.json(result);
 
     } catch (error) {
         await transaction.rollback();
