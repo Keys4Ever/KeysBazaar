@@ -328,47 +328,56 @@ const getOneProduct = async (req, res) => {
 };
 
 // Updated Controller to get the most popular products with a limit
-const getMostPopularProduct = async (req, res) => { 
-    const desiredCount = parseInt(req.query.limit) || 1;
+const getMostPopularProduct = async (req, res) => {
+    const desiredCount = parseInt(req.query.limit, 10) || 1;
+
+    if (desiredCount < 1) {
+        return res.status(400).json({ error: "The limit must be at least 1." });
+    }
+
     let query = `
         WITH popular_product AS (
             SELECT p.id, p.title, p.description, p.price, p.imageUrl, p.trailerUrl, SUM(oi.quantity) AS total_sold
             FROM products p
-            JOIN order_items oi ON p.id = oi.product_id
+            LEFT JOIN order_items oi ON p.id = oi.product_id
             GROUP BY p.id
             ORDER BY total_sold DESC
             LIMIT 1
         )
-        SELECT * FROM popular_product
+        SELECT * 
+        FROM popular_product 
+        
     `;
 
     if (desiredCount > 1) {
-        query += `
-            UNION ALL
-            SELECT id, title, description, price, imageUrl, trailerUrl, NULL as total_sold
-            FROM products
-            WHERE id NOT IN (SELECT id FROM popular_product)
-            LIMIT ${desiredCount}
-        `;
-    }
+      query += `
+        UNION ALL
+        SELECT p.id, p.title, p.description, p.price, p.imageUrl, p.trailerUrl, NULL as total_sold
+        FROM products p
+        WHERE p.id NOT IN (SELECT id FROM popular_product)
+        LIMIT ?;
+    `;
+    } 
 
     try {
-        const { rows: products } = await client.execute(query);
+        const params = desiredCount > 1 ? [desiredCount] : [];
+        const { rows: products } = await client.execute({ 
+            sql: query, 
+            args: params
+        });
 
-        if(desiredCount > 1){
-            const orderedProducts = products.map((product, index) => ({
-                ...product,
-                order: index + 1
-            }));
-            return res.status(200).json(orderedProducts);
-        }
+        const response = products.map((product, index) => ({
+            ...product,
+            order: index + 1
+        }));
 
-        res.status(200).json(products);
+        res.status(200).json(response);
     } catch (error) {
         console.error("Error fetching the most popular products:", error);
-        res.status(500).json({ error: "Failed to retrieve the most popular products" });
+        res.status(500).json({ error: "Failed to retrieve the most popular products." });
     }
 };
+
 
 // Controller to get all uncategorized products
 const getUncategorizedProducts = async (req, res) => {
