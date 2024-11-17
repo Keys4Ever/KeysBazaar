@@ -1,175 +1,177 @@
 import client from "../config/turso.js";
-import dotenv from 'dotenv';
-import fetch from 'node-fetch'
+import fetch from 'node-fetch';
 import sendAssignedKey from "../services/resendServices.js";
-dotenv.config();
 
 const PAYPAL_API = 'https://api-m.sandbox.paypal.com';
+const RETURN_URL_BASE = 'http://localhost:3000/api/paypal/capture';
+const CANCEL_URL_BASE = 'http://localhost:3000';
 
-/**
- *      How to use:
- * 
- * 1. Post to http://localhost:3000/api/paypal/initiate with a body like:
-  {
-   "provider_id": "112531567876469090931", // It has to be a string
-   "items": [
-       {
-           "product_id": 64,
-           "quantity": 2
-       },
-       {
-           "product_id": 65,
-           "quantity": 1
-       }
-   ]
- }
- * 
- * 2. In the response is ok you will get something like 
- {
-    "orderId": 5,
-    "paypalOrderId": "5RA50173JV956822V",
-    "approvalUrl": "https://www.sandbox.paypal.com/checkoutnow?token=5RA50173JV956822V"
- }
- * You have to use the approval url to start the payment, you have to use a sandbox account to test this
- *
- * 
- * 3. It will redirect you to something like: http://localhost:3000/api/paypal/capture?token=5RA50173JV956822V&PayerID=6W8DHC5GQHAQN
- * there it will "commit" the payment. 
- * 
- */
-
-
-// Function to get the access token
-const getPayPalAccessToken = async () => {
+// Get PayPal Access Token
+async function getPayPalAccessToken() {
     try {
-        const auth = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_SECRET}`).toString('base64');
+        const credentials = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_SECRET}`).toString('base64');
         const response = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
             method: 'POST',
             body: 'grant_type=client_credentials',
             headers: {
-                Authorization: `Basic ${auth}`,
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
+                Authorization: `Basic ${credentials}`,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
         });
+
+        if (!response.ok) throw new Error('Failed to retrieve PayPal access token');
 
         const data = await response.json();
         return data.access_token;
     } catch (error) {
         console.error('Error getting PayPal access token:', error);
-        throw new Error('Failed to authenticate with PayPal');
+        throw new Error('PayPal authentication failed');
     }
-};
+}
 
-// This has to be refactorized, use transactions, and requesting id's and price from req.
-const initiatePayment = async (req, res) => {
-    let { provider_id, items } = req.body;
-    let { email } = req.query;
+// Create Temporary User if Not Exists
+async function tempUser(email) {
+    try {
+        const { rows } = await client.execute({
+            sql: 'SELECT provider_id FROM users WHERE email = ?',
+            args: [email],
+        });
+
+        if (rows.length > 0) return rows[0].provider_id;
+
+        const provider_id = crypto.randomUUID();
+
+        await client.execute({
+            sql: 'INSERT INTO users (email, provider, provider_id) VALUES (?, ?, ?)',
+            args: [email, 'not registered', provider_id],
+        });
+
+        return provider_id;
+    } catch (error) {
+        console.error('Error creating or retrieving user:', error);
+        throw new Error('Failed to process user data');
+    }
+}
+
+// Initiate Payment
+async function initiatePayment(req, res) {
+    const { provider_id: inputProviderId, items } = req.body;
+    const { email } = req.query;
     const transaction = await client.transaction("write");
 
-    if (!provider_id) {
-        provider_id = await tempUser(email);
-    }
-    
-
-    provider_id = String(provider_id);
-
     try {
-        let totalAmount = 0;
-        const productDetails = [];
+        const provider_id = String(inputProviderId || await tempUser(email));
+        const { totalAmount, productDetails } = await calculateOrderDetails(items, transaction);
 
-        for (const item of items) {
-            const { rows } = await transaction.execute({
-                sql: "SELECT price, title FROM products WHERE id = ?",
-                args: [item.product_id]
-            });
-
-            if (rows.length === 0) {
-                throw new Error(`Product ${item.product_id} not found`);
-            }
-
-            const product = rows[0];
-            totalAmount += product.price * item.quantity;
-            productDetails.push({
-                ...item,
-                title: product.title,
-                price: product.price
-            });
-        }
-
-        // Make order in the db
         const { rows: orderRows } = await transaction.execute({
             sql: "INSERT INTO orders (provider_id, total_price) VALUES (?, ?) RETURNING id",
-            args: [provider_id, totalAmount]
+            args: [provider_id, totalAmount],
         });
-
         const orderId = orderRows[0].id;
 
-        // Insert items in the order
-        for (const item of productDetails) {
-            await transaction.execute({
-                sql: "INSERT INTO order_items (order_id, product_id, quantity, price_at_purchase) VALUES (?, ?, ?, ?)",
-                args: [orderId, item.product_id, item.quantity, item.price]
-            });
-        }
+        await insertOrderItems(orderId, productDetails, transaction);
 
-        // Make the ppl order with the api.
-        const accessToken = await getPayPalAccessToken();
-        
-        const paypalOrder = {
-            intent: "CAPTURE",
-            purchase_units: [{
-                reference_id: orderId.toString(),
-                amount: {
-                    currency_code: "USD",
-                    value: totalAmount.toString()
-                },
-                description: `Order ${orderId}`
-            }],
-            application_context: {
-                return_url: `http://localhost:3000/api/paypal/capture?email=${email}`,
-                cancel_url: 'http://localhost:3000' //should change it
-            }
-        };
-
-        const response = await fetch(`${PAYPAL_API}/v2/checkout/orders`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${accessToken}`,
-            },
-            body: JSON.stringify(paypalOrder)
-        });
-
-        const paypalResponse = await response.json();
-
-        // Save transaction
-        await transaction.execute({
-            sql: `INSERT INTO transactions 
-                 (order_id, provider, transaction_id, amount, currency, status)
-                 VALUES (?, ?, ?, ?, ?, ?)`,
-            args: [orderId, 'paypal', paypalResponse.id, totalAmount, 'USD', 'pending']
-        });
+        const paypalResponse = await createPayPalOrder(orderId, totalAmount, email);
+        await saveTransaction(orderId, paypalResponse.id, totalAmount, transaction);
 
         await transaction.commit();
 
         res.json({
             orderId,
             paypalOrderId: paypalResponse.id,
-            approvalUrl: paypalResponse.links.find(link => link.rel === 'approve').href
+            approvalUrl: paypalResponse.links.find(link => link.rel === 'approve').href,
         });
-
     } catch (error) {
         await transaction.rollback();
         console.error("Error initiating payment:", error);
         res.status(500).json({ error: "Failed to initiate payment" });
     }
-};
+}
 
-// Confirm payment with ppl api
-const capturePayment = async (req, res) => {
+// Helper to Calculate Order Details
+async function calculateOrderDetails(items, transaction) {
+    let totalAmount = 0;
+    const productDetails = [];
+
+    for (const item of items) {
+        const { rows } = await transaction.execute({
+            sql: "SELECT price, title FROM products WHERE id = ?",
+            args: [item.product_id],
+        });
+
+        if (rows.length === 0) throw new Error(`Product ${item.product_id} not found`);
+
+        const product = rows[0];
+        totalAmount += product.price * item.quantity;
+        productDetails.push({
+            ...item,
+            title: product.title,
+            price: product.price,
+        });
+    }
+
+    return { totalAmount, productDetails };
+}
+
+// Helper to Insert Order Items
+async function insertOrderItems(orderId, productDetails, transaction) {
+    for (const item of productDetails) {
+        await transaction.execute({
+            sql: "INSERT INTO order_items (order_id, product_id, quantity, price_at_purchase) VALUES (?, ?, ?, ?)",
+            args: [orderId, item.product_id, item.quantity, item.price],
+        });
+    }
+}
+
+// Create PayPal Order
+async function createPayPalOrder(orderId, totalAmount, email) {
+    const accessToken = await getPayPalAccessToken();
+
+    const paypalOrder = {
+        intent: "CAPTURE",
+        purchase_units: [{
+            reference_id: orderId.toString(),
+            amount: {
+                currency_code: "USD",
+                value: totalAmount.toString(),
+            },
+            description: `Order ${orderId}`,
+        }],
+        application_context: {
+            return_url: `${RETURN_URL_BASE}?email=${email}`,
+            cancel_url: CANCEL_URL_BASE,
+        },
+    };
+
+    const response = await fetch(`${PAYPAL_API}/v2/checkout/orders`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(paypalOrder),
+    });
+
+    if (!response.ok) throw new Error('Failed to create PayPal order');
+
+    return await response.json();
+}
+
+// Save Transaction Record
+async function saveTransaction(orderId, paypalOrderId, totalAmount, transaction) {
+    await transaction.execute({
+        sql: `INSERT INTO transactions 
+              (order_id, provider, transaction_id, amount, currency, status)
+              VALUES (?, ?, ?, ?, ?, ?)`,
+        args: [orderId, 'paypal', paypalOrderId, totalAmount, 'USD', 'pending'],
+    });
+}
+
+// Capture Payment
+async function capturePayment(req, res) {
     const { token, email } = req.query;
     const transaction = await client.transaction("write");
-    console.log(token);
+
     try {
         const accessToken = await getPayPalAccessToken();
         const response = await fetch(`${PAYPAL_API}/v2/checkout/orders/${token}/capture`, {
@@ -177,91 +179,67 @@ const capturePayment = async (req, res) => {
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${accessToken}`,
-            }
+            },
         });
 
         const paypalResponse = await response.json();
-        console.log(paypalResponse);
-        if (paypalResponse.status !== 'COMPLETED') {
-            throw new Error('Payment not completed');
-        }
+        if (paypalResponse.status !== 'COMPLETED') throw new Error('Payment not completed');
 
-        // Get the order id from the db
-        const referenceId = paypalResponse.purchase_units[0].reference_id;
-        const orderId = parseInt(referenceId);
-
-        // Update the transaction status
+        const orderId = parseInt(paypalResponse.purchase_units[0].reference_id);
         await transaction.execute({
             sql: "UPDATE transactions SET status = ? WHERE transaction_id = ?",
-            args: ['completed', token]
+            args: ['completed', token],
         });
 
-        // Get the order items
-        const { rows: orderItems } = await transaction.execute({
-            sql: "SELECT product_id, quantity FROM order_items WHERE order_id = ?",
-            args: [orderId]
-        });
-
-        // Prepare to store assigned keys to send to the user
-        const assignedKeys = [];
-
-        // Assign keys for every product
-        for (const item of orderItems) {
-            const { rows: availableKeys } = await transaction.execute({
-                sql: `SELECT id, key FROM product_keys 
-                      WHERE product_id = ? 
-                      AND id NOT IN (SELECT key_id FROM assigned_keys)
-                      LIMIT ?`,
-                args: [item.product_id, item.quantity]
-            });
-
-            if (availableKeys.length < item.quantity) {
-                throw new Error('Insufficient product keys available');
-            }
-
-            // Assign each key and store it in the assignedKeys array
-            for (const key of availableKeys) {
-                await transaction.execute({
-                    sql: "INSERT INTO assigned_keys (order_id, key_id) VALUES (?, ?)",
-                    args: [orderId, key.id]
-                });
-                assignedKeys.push({
-                    product_id: item.product_id,
-                    key: key.key
-                });
-            }
-        }
-
+        const assignedKeys = await assignProductKeys(orderId, transaction);
         await transaction.commit();
-        
-        //send email with the assigned key
 
-        const result = {
-            success: true,
-            orderId,
-            transactionId: token,
-            assignedKeys,
-            email
-        }
+        const result = { success: true, orderId, transactionId: token, assignedKeys, email };
+        sendAssignedKey(result);
 
-        try{
-            sendAssignedKey(result);
-        }catch(err){
-            console.error(err);
-        }
-
-        // Respond with success and assigned keys
         res.json(result);
-
     } catch (error) {
         await transaction.rollback();
         console.error("Error capturing payment:", error);
         res.status(500).json({ error: "Failed to capture payment" });
     }
-};
+}
 
-// get order history
-const getOrderHistory = async (req, res) => {
+// Assign Product Keys
+async function assignProductKeys(orderId, transaction) {
+    const { rows: orderItems } = await transaction.execute({
+        sql: "SELECT product_id, quantity FROM order_items WHERE order_id = ?",
+        args: [orderId],
+    });
+
+    const assignedKeys = [];
+
+    for (const item of orderItems) {
+        const { rows: availableKeys } = await transaction.execute({
+            sql: `
+                SELECT id, key FROM product_keys 
+                WHERE product_id = ? 
+                AND id NOT IN (SELECT key_id FROM assigned_keys)
+                LIMIT ?`,
+            args: [item.product_id, item.quantity],
+        });
+
+        if (availableKeys.length < item.quantity) throw new Error('Insufficient product keys available');
+
+        for (const key of availableKeys) {
+            await transaction.execute({
+                sql: "INSERT INTO assigned_keys (order_id, key_id) VALUES (?, ?)",
+                args: [orderId, key.id],
+            });
+            assignedKeys.push({ product_id: item.product_id, key: key.key });
+        }
+    }
+
+    return assignedKeys;
+}
+
+// Get Order History
+async function getOrderHistory(req, res) {
     const { provider_id } = req.params;
 
     try {
@@ -274,10 +252,9 @@ const getOrderHistory = async (req, res) => {
                 WHERE o.provider_id = ?
                 ORDER BY o.created_at DESC
             `,
-            args: [provider_id]
+            args: [provider_id],
         });
 
-        // Get details for every order
         for (let order of orders) {
             const { rows: items } = await client.execute({
                 sql: `
@@ -290,95 +267,42 @@ const getOrderHistory = async (req, res) => {
                     LEFT JOIN product_keys pk ON ak.key_id = pk.id
                     WHERE oi.order_id = ?
                 `,
-                args: [order.id]
+                args: [order.id],
             });
             order.items = items;
         }
 
         res.json(orders);
-
     } catch (error) {
         console.error("Error fetching order history:", error);
         res.status(500).json({ error: "Failed to fetch order history" });
     }
-};
+}
 
-// Get a order specific details
-const getOrderDetails = async (req, res) => {
-    const { orderId } = req.params;
+// Get Order Details
+async function getOrderDetails(req, res) {
+    const { order_id } = req.params;
 
     try {
         const { rows: orderDetails } = await client.execute({
             sql: `
-                SELECT o.*, t.status as payment_status, t.transaction_id
-                FROM orders o
-                LEFT JOIN transactions t ON o.id = t.order_id
-                WHERE o.id = ?
-            `,
-            args: [orderId]
-        });
-
-        if (orderDetails.length === 0) {
-            return res.status(404).json({ error: "Order not found" });
-        }
-
-        const order = orderDetails[0];
-
-        const { rows: items } = await client.execute({
-            sql: `
                 SELECT oi.quantity, oi.price_at_purchase,
                        p.title, p.imageUrl,
-                       GROUP_CONCAT(pk.key) as product_keys
+                       pk.key as product_key
                 FROM order_items oi
                 JOIN products p ON oi.product_id = p.id
                 LEFT JOIN assigned_keys ak ON oi.order_id = ak.order_id
                 LEFT JOIN product_keys pk ON ak.key_id = pk.id
                 WHERE oi.order_id = ?
-                GROUP BY oi.id
             `,
-            args: [orderId]
+            args: [order_id],
         });
 
-        order.items = items;
-        res.json(order);
-
+        res.json(orderDetails);
     } catch (error) {
         console.error("Error fetching order details:", error);
         res.status(500).json({ error: "Failed to fetch order details" });
     }
-};
-
-async function tempUser(email){
-    try {
-        const result = await client.execute({
-            sql: 'SELECT provider_id FROM users WHERE email = ?',
-            args: [email]
-        });
-        console.log(result);
-        if (result.rows.length > 0) {
-            provider_id = result.rows[0].provider_id;
-            console.log(`El email ya existe. Provider_id recuperado: ${provider_id}`);
-            return provider_id;
-        } else {
-            provider_id = crypto.randomUUID();
-
-            await client.execute({
-                sql: 'INSERT INTO users (email, provider, provider_id) VALUES (?, ?, ?)',
-                args: [email, 'not registered', provider_id]
-            });
-
-            console.log(`Nuevo usuario creado con provider_id: ${provider_id}`);
-            return provider_id;
-        }
-    } catch (error) {
-        console.error('Error al manejar provider_id:', error);
-        throw new Error('Error procesando el usuario');
-    }
 }
 
-export {
-    initiatePayment,
-    capturePayment,
-    getOrderHistory,
-    getOrderDetails
-};
+export { initiatePayment, capturePayment, getOrderHistory, getOrderDetails };
