@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { authMiddleware, checkUserInDatabase } from "./middlewares/auth0.js";
 import dotenv from "dotenv";
+import fileUpload from 'express-fileupload';
 
 dotenv.config();
 
@@ -11,6 +12,7 @@ import cartRoutes from "./routes/cartRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import paypalRoutes from './routes/paypalRoutes.js'
+import { fileUploadConfig } from "./config/fileUpload.js";
 
 const app = express();
 const port = 3000;;
@@ -23,7 +25,7 @@ const corsOptions = {
     credentials: true
 };
 
-app.use(cors(corsOptions));  
+app.use(cors(corsOptions));
 
 app.use(authMiddleware);
 
@@ -40,7 +42,7 @@ app.get("/callback", (req, res) => {
 })
 
 app.use("/api/users", userRoutes);
-app.use("/api/products", productRoutes);
+app.use("/api/products", fileUpload(fileUploadConfig),productRoutes); // middleware to obtain req.files, they must be sent in form format, no idea how to do it withouth a client like postman or insomnia
 app.use("/api/carts", cartRoutes);
 app.use("/api/paypal", paypalRoutes)
 app.use("/api/categories", categoryRoutes);
