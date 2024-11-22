@@ -1,4 +1,5 @@
-import s3Client from "../config/s3";
+import s3Client from "../config/s3.js";
+import {s3Bucket} from '../config/awsCredentials.js'
 import { DeleteObjectCommand, GetObjectCommand, ListObjectsCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import fs from 'fs';
 
@@ -16,7 +17,7 @@ import fs from 'fs';
  * 
  * url: https://keysbazaar-test2.s3.us-east-2.amazonaws.com/GcrLy0vWYAAupdN.png
  * 
- * req.files.file
+ * req.files.file <-- the form field has to have this name
  * 
  */
 
@@ -62,4 +63,4 @@ const deleteFile = async(fileName) =>{
 }
 
 
-export { uploadFile, getAllFiles, getOneFiles };
+export { uploadFile, getAllFiles, getOneFiles, deleteFile };
