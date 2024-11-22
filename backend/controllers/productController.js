@@ -156,12 +156,6 @@ function getImageName(imageUrl){
 
 // Controller to create a new product
 const createProduct = async (req, res) => {
-    console.log("Start createProduct function");
-    
-    // Log de diagnóstico inicial
-    console.log("req.body:", req.body);
-    console.log("req.files:", req.files);
-
     let { 
         title, 
         description, 
@@ -172,39 +166,22 @@ const createProduct = async (req, res) => {
 
     const { file } = req.files || {};
     categoryIds = Array.isArray(categoryIds) ? categoryIds : [categoryIds];
-    // Logs de variables iniciales
-    console.log("Extracted data:");
-    console.log("title:", title);
-    console.log("description:", description);
-    console.log("price:", price);
-    console.log("categoryIds:", categoryIds);
-    console.log("trailerUrl:", trailerUrl);
-    console.log("file:", file ? file.name : "No file provided");
 
-    console.log("categoryIds is array:", Array.isArray(categoryIds));
-    console.log("categoryIds length:", categoryIds ? categoryIds.length : "N/A");
-
-    // Validaciones iniciales
-    if (!title || !description || isNaN(price)) {
-        console.error("Validation error: Invalid input data");
+    if (!title || isNaN(price)) {
         return res.status(400).json({ error: "Invalid input. Please provide title, description, and price." });
     }
 
     if (!file) {
-        console.error("Validation error: No file provided");
         return res.status(400).json({ error: "File is required." });
     }
 
     // Subir archivo
     let imageUrl = null;
     try {
-        console.log("Attempting to upload file...");
         const response = await uploadFile(file);
-        console.log("Upload response:", response);
 
         if (response.$metadata.httpStatusCode === 200) {
             imageUrl = `https://keysbazaar-test2.s3.us-east-2.amazonaws.com/${file.name}`;
-            console.log("File uploaded successfully. Image URL:", imageUrl);
         } else {
             throw new Error("File upload failed.");
         }
@@ -214,39 +191,29 @@ const createProduct = async (req, res) => {
     }
 
     const transaction = await client.transaction("write");
-    console.log("Transaction started");
 
     try {
-        console.log("Inserting product into database...");
         const result = await transaction.execute({
             sql: "INSERT INTO products (title, description, price, imageUrl, trailerUrl) VALUES (?, ?, ?, ?, ?) RETURNING id",
             args: [title, description, price, imageUrl || null, trailerUrl || null],
         });
-        console.log("Product insertion result:", result);
 
         const productId = result.rows[0]?.id;
-        console.log("Inserted product ID:", productId);
 
         if (Array.isArray(categoryIds) && categoryIds.length > 0) {
-            console.log("Inserting categories for product:", categoryIds);
             for (const categoryId of categoryIds) {
-                console.log(`Inserting category ID ${categoryId} for product ID ${productId}`);
                 await transaction.execute({
                     sql: "INSERT INTO product_categories (product_id, category_id) VALUES (?, ?)",
                     args: [productId, categoryId],
                 });
             }
-        } else {
-            console.log("No categories to insert");
         }
 
         await transaction.commit();
-        console.log("Transaction committed successfully");
 
         res.status(201).json({ message: "Product created successfully", productId });
     } catch (error) {
         await transaction.rollback();
-        console.error("Error creating product:", error);
         res.status(500).json({ error: "Failed to create product" });
     }
 };
