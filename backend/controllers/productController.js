@@ -1,6 +1,7 @@
 import { response } from "express";
 import client from "../config/turso.js";
 import { deleteFile, uploadFile } from "../services/s3Services.js";
+import { s3Bucket } from "../config/awsCredentials.js";
 
 // Controller to get all products with optional search query
 const getAllProducts = async (req, res) => {
@@ -165,6 +166,9 @@ const createProduct = async (req, res) => {
     } = req.body;
 
     const { file } = req.files || {};
+    let imageUrl = null;
+
+    // Form sends the categoryIds as an string if it's a single category, so we need to convert it to an array
     categoryIds = Array.isArray(categoryIds) ? categoryIds : [categoryIds];
 
     if (!title || isNaN(price)) {
@@ -173,21 +177,6 @@ const createProduct = async (req, res) => {
 
     if (!file) {
         return res.status(400).json({ error: "File is required." });
-    }
-
-    // Subir archivo
-    let imageUrl = null;
-    try {
-        const response = await uploadFile(file);
-
-        if (response.$metadata.httpStatusCode === 200) {
-            imageUrl = `https://keysbazaar-test2.s3.us-east-2.amazonaws.com/${file.name}`;
-        } else {
-            throw new Error("File upload failed.");
-        }
-    } catch (error) {
-        console.error("Error uploading file:", error);
-        return res.status(500).json({ error: "Failed to upload image." });
     }
 
     const transaction = await client.transaction("write");
@@ -209,9 +198,22 @@ const createProduct = async (req, res) => {
             }
         }
 
-        await transaction.commit();
+        try {
+            const response = await uploadFile(file);
 
+            if (response.$metadata.httpStatusCode === 200) {
+                imageUrl = `${s3Bucket.url}/${file.name}`;
+            } else {
+                throw new Error("File upload failed.");
+            }
+        } catch (error) {
+            console.error("Error uploading file:", error);
+            return res.status(500).json({ error: "Failed to upload image." });
+        }
+
+        await transaction.commit();
         res.status(201).json({ message: "Product created successfully", productId });
+
     } catch (error) {
         await transaction.rollback();
         res.status(500).json({ error: "Failed to create product" });
@@ -276,13 +278,14 @@ const updateProduct = async (req, res) => {
             if (file.name != getImageName(oldUrl)){
                 await deleteFile(oldUrl);
                 await uploadFile(file);
-                newUrl = `https://keysbazaar-test2.s3.us-east-2.amazonaws.com/${file.name}`;
+
+                newUrl = `${s3Bucket.url}/${file.name}`;
                 fields.push("imageUrl = ?");
                 params.push(newUrl);
             }
             //add something to do the samething as up but with the size, so it can has the same title.
         } catch (error) {
-            console.error('Error obteniendo la antigua imágen')
+            console.error('Error updating product image:', error);
         }
     }
     if (description) {
