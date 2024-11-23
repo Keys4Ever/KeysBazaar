@@ -66,10 +66,22 @@ const getAllProducts = async (req, res) => {
 
         let productQuery = `
             SELECT p.id, p.title, p.description, p.price, p.created_at, p.imageUrl, p.trailerUrl,
-                   c.name AS category_name, c.id AS category_id
+                c.name AS category_name, c.id AS category_id,
+                d.discount_percentage,
+                CASE 
+                    WHEN d.id IS NOT NULL 
+                    AND d.start_date <= CURRENT_TIMESTAMP 
+                    AND d.end_date >= CURRENT_TIMESTAMP 
+                    THEN ROUND(p.price * (1 - d.discount_percentage / 100), 2)
+                    ELSE NULL 
+                END as discounted_price
             FROM products p
             JOIN product_categories pc ON p.id = pc.product_id
             JOIN categories c ON pc.category_id = c.id
+            LEFT JOIN product_discounts pd ON p.id = pd.product_id
+            LEFT JOIN discounts d ON pd.discount_id = d.id 
+                AND d.start_date <= CURRENT_TIMESTAMP 
+                AND d.end_date >= CURRENT_TIMESTAMP
             WHERE p.id IN (${productIds.map(() => '?').join(', ')})
             GROUP BY p.id, c.id
         `;
@@ -89,7 +101,10 @@ const getAllProducts = async (req, res) => {
                     created_at: row.created_at,
                     imageUrl: row.imageUrl,
                     trailerUrl: row.trailerUrl,
-                    categories: []
+                    categories: [],
+                    hasDiscount: row.discount_percentage !== null,
+                    discountPercentage: row.discount_percentage,
+                    discountedPrice: row.discounted_price
                 };
             }
             productsMap[row.id].categories.push({ id: row.category_id, name: row.category_name });

@@ -11,7 +11,8 @@ import productRoutes from "./routes/productRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
-import paypalRoutes from './routes/paypalRoutes.js'
+import paypalRoutes from './routes/paypalRoutes.js';
+import discountRoutes from './routes/discountRoutes.js';
 import { fileUploadConfig } from "./config/fileUpload.js";
 
 const app = express();
@@ -33,6 +34,7 @@ app.use(checkUserInDatabase);
 
 app.use(express.json());
 
+
 app.get("/", (req, res) => {
     res.redirect('http://localhost:5173');
 });
@@ -42,10 +44,11 @@ app.get("/callback", (req, res) => {
 })
 
 app.use("/api/users", userRoutes);
-app.use("/api/products", fileUpload(fileUploadConfig),productRoutes); // middleware to obtain req.files, they must be sent in form format, no idea how to do it withouth a client like postman or insomnia
+app.use("/api/products", fileUpload(fileUploadConfig),productRoutes);
 app.use("/api/carts", cartRoutes);
 app.use("/api/paypal", paypalRoutes)
 app.use("/api/categories", categoryRoutes);
+app.use('/api/discounts', discountRoutes);
 app.use("/", authRoutes);
 
 app.listen(port, () => {
