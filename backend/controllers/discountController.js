@@ -1,4 +1,4 @@
-import client from "../config/turso";
+import client from "../config/turso.js";
 
 // Utility functions
 const validateDate = (date) => {
@@ -150,6 +150,33 @@ const addProductToDiscount = async(req, res) => {
         });
     }
 };
+
+const deleteDiscount = async(req, res) =>{
+    const { discountId } = req.params;
+
+    if(!discountId){
+        return res.status(400).json({message: 'Missing required fields'})
+    }
+    const transaction = await client.transaction('write');
+
+    try {
+        const response = await transaction.execute({
+            sql: "DELETE FROM discounts WHERE id = ?",
+            args: [discountId]
+        })
+        
+        if (!response.rowsAffected){
+            throw new Error('Error deleting discount');
+        }
+
+        await transaction.commit();
+        res.status(200).json({message: 'Discount deleted successfully'});
+    } catch (error) {
+        await transaction.rollback();
+        console.error(error);
+        res.status(500).json({message: 'Error deleting discount'});
+    }
+}
 
 const updateDiscount = async(req, res) =>{
     const { discountId, newDiscountPercentage, newEndDate } = req.body;
