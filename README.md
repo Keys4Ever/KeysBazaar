@@ -26,3 +26,4 @@ KeysBazaar simulates the core functionalities of a typical e-commerce platform, 
 - [ ] Integrate payment gateway (Stripe, PayPal, Crypto)
 - [ ] Middleware to check if a product has enough keys
 - [ ] Refactorice auth
+- [] idk
