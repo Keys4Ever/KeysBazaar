@@ -183,7 +183,6 @@ const createProduct = async (req, res) => {
     const { file } = req.files || {};
     let imageUrl = null;
 
-    // Form sends the categoryIds as an string if it's a single category, so we need to convert it to an array
     categoryIds = Array.isArray(categoryIds) ? categoryIds : [categoryIds];
 
     if (!title || isNaN(price)) {
@@ -197,6 +196,7 @@ const createProduct = async (req, res) => {
     const transaction = await client.transaction("write");
 
     try {
+        // Insert the product into the database with a placeholder for imageUrl
         const result = await transaction.execute({
             sql: "INSERT INTO products (title, description, price, imageUrl, trailerUrl) VALUES (?, ?, ?, ?, ?) RETURNING id",
             args: [title, description, price, imageUrl || null, trailerUrl || null],
@@ -204,6 +204,7 @@ const createProduct = async (req, res) => {
 
         const productId = result.rows[0]?.id;
 
+        // Insert categories if provided
         if (Array.isArray(categoryIds) && categoryIds.length > 0) {
             for (const categoryId of categoryIds) {
                 await transaction.execute({
@@ -213,6 +214,7 @@ const createProduct = async (req, res) => {
             }
         }
 
+        // Upload file to S3
         try {
             const response = await uploadFile(file);
 
@@ -221,6 +223,12 @@ const createProduct = async (req, res) => {
             } else {
                 throw new Error("File upload failed.");
             }
+
+            // Update the product with the correct imageUrl
+            await transaction.execute({
+                sql: "UPDATE products SET imageUrl = ? WHERE id = ?",
+                args: [imageUrl, productId],
+            });
         } catch (error) {
             console.error("Error uploading file:", error);
             return res.status(500).json({ error: "Failed to upload image." });
@@ -234,7 +242,6 @@ const createProduct = async (req, res) => {
         res.status(500).json({ error: "Failed to create product" });
     }
 };
-
 
 // Controller to delete an existing product
 const deleteProduct = async (req, res) => {
@@ -289,20 +296,30 @@ const updateProduct = async (req, res) => {
     if (file) {
         try {
             const oldUrl = await getImageUrl(productId) || null;
-
-            if (file.name != getImageName(oldUrl)){
-                await deleteFile(oldUrl);
-                await uploadFile(file);
-
-                newUrl = `${s3Bucket.url}/${file.name}`;
-                fields.push("imageUrl = ?");
-                params.push(newUrl);
+            const oldImageName = getImageName(oldUrl);
+    
+            if (file.name !== oldImageName) {
+                // Delete old image
+                if (oldImageName) {
+                    await deleteFile(oldImageName);
+                }
+    
+                // Upload new image
+                const response = await uploadFile(file);
+    
+                if (response.$metadata.httpStatusCode === 200) {
+                    const newUrl = `${s3Bucket.url}/${file.name}`;
+                    fields.push("imageUrl = ?");
+                    params.push(newUrl);
+                } else {
+                    throw new Error("File upload failed.");
+                }
             }
-            //add something to do the samething as up but with the size, so it can has the same title.
         } catch (error) {
-            console.error('Error updating product image:', error);
+            console.error("Error updating product image:", error);
         }
     }
+    
     if (description) {
         fields.push("description = ?");
         params.push(description);
